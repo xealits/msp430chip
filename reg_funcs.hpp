@@ -92,3 +92,65 @@ struct BitFieldSignature {
 	//static BitFieldInfo info(void) {return {t_offset, t_n_bits, s_name};};
 };
 
+using RegType = uint16_t;
+
+namespace IOPort1Ctrl {
+  constexpr unsigned NUMBER_OF_PINS = 8;
+  // not sure if it is worth to name pins
+  // it just links the board namespace to this one, the chip namespace
+  enum PINS {PIN0=0, PIN1=1, PIN2=2, PIN3=3, PIN4=4, PIN5=5, PIN6=6, PIN7=7};
+
+  decltype(P1IN)&   input         = P1IN;                               /* Port 1 Input */
+  decltype(P1OUT)&  output        = P1OUT;                              /* Port 1 Output */
+  decltype(P1DIR)&  direction_reg = P1DIR;                              /* Port 1 Direction */
+  // they use extern volatile unsigned char -- it is not a pointer.
+  // a symbol itself is probably mapped as needed?
+  // use a reference then
+  //decltype(P1IFG)    = P1IFG;                              /* Port 1 Interrupt Flag */
+  //decltype(P1IES)    = P1IES;                              /* Port 1 Interrupt Edge Select */
+  //decltype(P1IE)     = P1IE;                               /* Port 1 Interrupt Enable */
+  //decltype(P1SEL)    = P1SEL;                              /* Port 1 Selection */
+  //decltype(P1SEL2)   = P1SEL2;                             /* Port 1 Selection 2 */
+  //decltype(P1REN)    = P1REN;                              /* Port 1 Resistor Enable */
+
+  //using IO_DIR = LOGIC_LEVELS;
+  //using IO_IN  = LOGIC_LEVELS::LOW;
+  //using IO_OUT = LOGIC_LEVELS::HIGH;
+  enum IO_DIR {IO_IN = LOGIC_LEVELS::LOW, IO_OUT = LOGIC_LEVELS::HIGH};
+
+  template<std::remove_reference<decltype(direction_reg)>::type pin_n>
+  void setPinDirection(IO_DIR dir) {
+    static_assert(pin_n < NUMBER_OF_PINS, "pin_n >= NUMBER_OF_PINS!"); // TODO: template N pins
+    setBit<pin_n>(direction_reg, static_cast<LOGIC_LEVELS>(dir));
+  }
+
+  template<unsigned... bit_ns>
+  constexpr void setDirectionMask(void) {
+    //direction_reg = regMask<std::remove_reference<decltype(direction_reg)>::type, 0x0, bit_ns...>();
+    //direction_reg = regMaskUnfold<base_type<decltype(direction_reg)>, 0x0, bit_ns...>();
+    direction_reg = regMask<decltype(direction_reg), bit_ns...>();
+  }
+
+  // the output on the pins
+  template<unsigned... bit_ns>
+  constexpr void toggleOutput(void) {
+    output ^= regMask<decltype(output), bit_ns...>();
+  }
+
+  template<unsigned... bit_ns>
+  constexpr void setOutput(void) {
+    output |= regMask<decltype(output), bit_ns...>();
+  }
+
+  template<unsigned... bit_ns>
+  constexpr void unsetOutput(void) {
+    output &= ~regMask<decltype(output), bit_ns...>();
+  }
+};
+
+namespace BoardPins {
+    /// \brief red led
+	constexpr unsigned LED1 = IOPort1Ctrl::PIN0;
+    /// \brief green led
+	constexpr unsigned LED2 = IOPort1Ctrl::PIN6;
+};
