@@ -148,9 +148,18 @@ namespace IOPort1Ctrl {
   }
 };
 
-namespace BoardPins {
-    /// \brief red led
-	constexpr unsigned LED1 = IOPort1Ctrl::PIN0;
-    /// \brief green led
-	constexpr unsigned LED2 = IOPort1Ctrl::PIN6;
+namespace LaunchpadBoards {
+    // use with something like:
+    // namespace Board = LaunchpadBoards::MSP_EXP430G2;
+
+    namespace MSP_EXP430G2 {
+        // my board says "MSP-EXP430G2"
+        // https://www.ti.com/lit/ug/slau318g/slau318g.pdf?ts=1731831644145
+        // https://dev.ti.com/tirex/explore/node?devtools=MSP-EXP430G2&node=A__ABjGDxJw12fXjxtYpSJOow__msp430_devtools__FUz-xrs__LATEST
+
+        /// \brief red led
+        constexpr unsigned LED1 = IOPort1Ctrl::PIN0;
+        /// \brief green led
+        constexpr unsigned LED2 = IOPort1Ctrl::PIN6;
+    };
 };
