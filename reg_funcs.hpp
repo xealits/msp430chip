@@ -115,20 +115,25 @@ namespace BitLogic {
         return reg_val;
     }
 
+    /** struct is just a handy way to bundle a couple functions that act on the same refreference
+     *  I could just use namespace, but I could not template it.
+     *
+     *  But it looks like Ti compiler cl430 does not inline this stuff well.
+     */
     template<typename RegT, RegT& t_reg, unsigned t_offset, unsigned t_n_bits>
     struct BitFieldSignature {
         //static const char* s_name;
         //static const BitFieldInfo<t_offset, t_n_bits> info;
-        static inline RegT get(void) {return getRegField<t_offset, t_n_bits>(t_reg);}
+        constexpr static inline RegT get(void) {return getRegField<t_offset, t_n_bits>(t_reg);}
         //static inline void set(RegT val) {return setRegField<t_offset, t_n_bits>(t_reg, val);}
         // clang compiles it, but Ti compiler cl430 cannot:
         // "../msp430_cpp/reg_funcs.hpp", line 122: error #306: no instance of function template "BitLogic::setRegField" matches the argument list
         //    argument types are: (volatile unsigned int, volatile unsigned int)
         //  detected during instantiation of "void BitLogic::BitFieldSignature<RegT, t_reg, t_offset, t_n_bits>::set(RegT) [with RegT=base_type<volatile unsigned int>, t_reg=TA0CCTL0, t_offset=4U, t_n_bits=1U]" at line 142 of "../msp430g2xx2_1_vlo.cpp"
         // like this should be easier:
-        static inline void set(RegT val) {t_reg = maskRegField<t_offset, t_n_bits>(val);}
+        constexpr static inline void set(RegT val) {t_reg = maskRegField<t_offset, t_n_bits>(val);}
 
-        static inline RegT mask(RegT val) {return maskRegField<t_offset, t_n_bits>(val);}
+        constexpr static inline RegT mask(RegT val) {return maskRegField<t_offset, t_n_bits>(val);}
         //static BitFieldInfo info(void) {return std::make_tuple(t_offset, t_n_bits);};
         //static BitFieldInfo info(void) {return {t_offset, t_n_bits, s_name};};
     };
@@ -180,7 +185,7 @@ namespace IOPort1Ctrl {
     }
 
     template<unsigned... bit_ns>
-    constexpr inline void setDirectionMask(void) {
+    constexpr inline void setDirecionOutputs(void) {
       //direction_reg = regMask<std::remove_reference<decltype(direction_reg)>::type, 0x0, bit_ns...>();
       //direction_reg = regMaskUnfold<base_type<decltype(direction_reg)>, 0x0, bit_ns...>();
       direction_reg = BitLogic::regMask<decltype(direction_reg), bit_ns...>();
