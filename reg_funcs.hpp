@@ -137,6 +137,15 @@ namespace BitLogic {
         //static BitFieldInfo info(void) {return std::make_tuple(t_offset, t_n_bits);};
         //static BitFieldInfo info(void) {return {t_offset, t_n_bits, s_name};};
     };
+
+    template<typename RegT, RegT& t_reg, unsigned field_offset, unsigned field_width>
+    constexpr static inline RegT get(void) {return getRegField<field_offset, field_width>(t_reg);}
+
+    template<typename RegT, RegT& t_reg, unsigned field_offset, unsigned field_width>
+    constexpr static inline void set(RegT val) {t_reg = maskRegField<field_offset, field_width>(val);}
+
+    template<typename RegT, RegT& t_reg, unsigned field_offset, unsigned field_width>
+    constexpr static inline RegT mask(RegT val) {return maskRegField<field_offset, field_width>(val);}
 };
 //using RegType = uint16_t;
 
@@ -148,9 +157,15 @@ namespace IOPort1Ctrl {
     // it just links the board namespace to this one, the chip namespace
     enum PINS {PIN0=0, PIN1=1, PIN2=2, PIN3=3, PIN4=4, PIN5=5, PIN6=6, PIN7=7};
 
-    decltype(P1IN)&   input         = P1IN;                               /* Port 1 Input */
-    decltype(P1OUT)&  output        = P1OUT;                              /* Port 1 Output */
-    decltype(P1DIR)&  direction_reg = P1DIR;                              /* Port 1 Direction */
+    //decltype(P1IN)&   input         = P1IN;                               /* Port 1 Input */
+    //decltype(P1OUT)&  output        = P1OUT;                              /* Port 1 Output */
+    //decltype(P1DIR)&  direction_reg = P1DIR;                              /* Port 1 Direction */
+    // it looks like cl430 does not optimise references
+    // let's just C it:
+    #define input         P1IN    /* Port 1 Input */
+    #define output        P1OUT   /* Port 1 Output */
+    #define direction_reg P1DIR   /* Port 1 Direction */
+
     // they use extern volatile unsigned char -- it is not a pointer.
     // a symbol itself is probably mapped as needed?
     // use a reference then
@@ -266,25 +281,80 @@ namespace Timer0_A3 {
     */
 
     //
-    decltype(TACTL)& timer_control  = TACTL; // so, this is just a more readable shortcut then?
+    //decltype(TACTL)& timer_control  = TACTL; // so, this is just a more readable shortcut then?
+    //#define timer_control  TACTL // so, this is just a more readable shortcut then?
+    // with a define inside a namespace, you won't be able to assign to it
+    // i.e. it Timer0_A3::timer_control will turn into Timer0_A3::TACTL which does not exist
+    namespace timer_control {
+        constexpr inline void set(decltype(TACTL) new_val) {
+            TACTL = new_val;
+        }
 
-    BitLogic::BitFieldSignature<decltype(TACTL),
-        //timer_control, // you cannot use a reference as a non-type template paremeter... C++ gotchas suck
-        TACTL,
-        8,
-        3> input_clock_select;
+        template<decltype(TACTL) new_val>
+        constexpr inline void set(void) {
+            TACTL = new_val;
+        }
+
+        constexpr inline decltype(TACTL) get(void) {
+            return TACTL;
+        }
+    };
+
+    //BitLogic::BitFieldSignature<decltype(TACTL),
+    //    //timer_control, // you cannot use a reference as a non-type template paremeter... C++ gotchas suck
+    //    TACTL,
+    //    8,
+    //    3> input_clock_select;
+    namespace input_clock_select {
+        constexpr inline decltype(TACTL) get(void) {return BitLogic::get<decltype(TACTL), TACTL, 8, 3>();}
+        constexpr inline void set(decltype(TACTL) val) {BitLogic::set<decltype(TACTL), TACTL, 8, 3>(val);}
+        //constexpr inline decltype(TACTL) mask(decltype(TACTL) val) {return BitLogic::mask<decltype(TACTL), TACTL, 8, 3>(val);}
+        using BitLogic::mask;
+        //template decltype(TACTL) mask<decltype(TACTL), TACTL, 8, 3>(decltype(TACTL) val);
+        constexpr inline decltype(TACTL) mask(decltype(TACTL) val) {return mask<decltype(TACTL), TACTL, 8, 3>(val);}
+        //it does not get inlined!
+
+        template<decltype(TACTL) val>
+        constexpr static inline decltype(TACTL) mask(void) {
+            return BitLogic::maskRegField<8, 3>(val);
+        }
+    };
+
+    //using BitLogic::mask;
+    //constexpr inline decltype(TACTL) input_clock_select_mask(decltype(TACTL) val) {return mask<decltype(TACTL), TACTL, 8, 3>(val);}
+    //constexpr static inline RegT mask(RegT val) {return maskRegField<field_offset, field_width>(val);}
+    using BitLogic::maskRegField;
+    constexpr static inline decltype(TACTL) input_clock_select_mask(decltype(TACTL) val) {return maskRegField<8, 3>(val);}
+    // still no inline
+    // let's try BitLogic::maskRegField directly in main?
+    // the point is that I want to hide the bit offset and width behind a meaningful name
+
     constexpr unsigned INPUT_CLOCK_TACLK = 0;
     constexpr unsigned INPUT_CLOCK_ACLK  = 1;
     constexpr unsigned INPUT_CLOCK_SMCLK = 2;
     constexpr unsigned INPUT_CLOCK_INCLK = 3;
 
-    BitLogic::BitFieldSignature<decltype(TACTL), TACTL, 6, 2> clock_divider;
+    //BitLogic::BitFieldSignature<decltype(TACTL), TACTL, 6, 2> clock_divider;
+    namespace clock_divider {
+        template<decltype(TACTL) val>
+        constexpr static inline decltype(TACTL) mask(void) {
+            return BitLogic::maskRegField<6, 2>(val);
+        }
+    };
+
     constexpr unsigned DIVIDE_0 = 0;
     constexpr unsigned DIVIDE_2 = 1;
     constexpr unsigned DIVIDE_4 = 2;
     constexpr unsigned DIVIDE_8 = 3;
 
-    BitLogic::BitFieldSignature<decltype(TACTL), TACTL, 4, 2> mode_control;
+    //BitLogic::BitFieldSignature<decltype(TACTL), TACTL, 4, 2> mode_control;
+    namespace mode_control {
+        template<decltype(TACTL) val>
+        constexpr static inline decltype(TACTL) mask(void) {
+            return BitLogic::maskRegField<4, 2>(val);
+        }
+    };
+
     constexpr unsigned MODE_STOP = 0;
     constexpr unsigned MODE_UPTO = 1;
     constexpr unsigned MODE_CONT = 2;
@@ -295,9 +365,25 @@ namespace Timer0_A3 {
     BitLogic::BitFieldSignature<decltype(TACTL), TACTL, 0, 1> overflow_flag;
 
     decltype(CCTL0)& ccr0_control   = CCTL0;
-    BitLogic::BitFieldSignature<base_type<decltype(CCTL0)>, CCTL0, 4, 1> cc0_interrupt_enable;
+    //BitLogic::BitFieldSignature<base_type<decltype(CCTL0)>, CCTL0, 4, 1> cc0_interrupt_enable;
+    namespace cc0_interrupt_enable {
+        template<decltype(CCTL0) new_val>
+        constexpr inline void set(void) {CCTL0 = BitLogic::maskRegField<4, 1>(new_val);}
+    };
 
-    decltype(CCR0)&  ccr0           = CCR0;
+    /* with the namespaces above we are back to below 500B program size
+     * from 630B bloat of the poor not-inlined compile-time code
+
+     Programming...
+     Writing  488 bytes at fc00 [section: .text]...
+     Writing   16 bytes at fdec [section: .cinit]...
+    */
+
+    //decltype(CCR0)&  ccr0           = CCR0;
+    namespace ccr0 {
+        inline void set(decltype(CCR0) val) {CCR0 = val;} // the compiler does not inline even this
+        inline decltype(CCR0) get(void) {return CCR0;}
+    };
 };
 
 namespace LaunchpadBoards {
