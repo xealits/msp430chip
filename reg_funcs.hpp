@@ -368,7 +368,7 @@ namespace Timer0_A3 {
     //BitLogic::BitFieldSignature<base_type<decltype(CCTL0)>, CCTL0, 4, 1> cc0_interrupt_enable;
     namespace cc0_interrupt_enable {
         template<decltype(CCTL0) new_val>
-        constexpr inline void set(void) {CCTL0 = BitLogic::maskRegField<4, 1>(new_val);}
+        constexpr inline void set(void) {CCTL0 |= BitLogic::maskRegField<4, 1>(new_val);}
     };
 
     /* with the namespaces above we are back to below 500B program size
