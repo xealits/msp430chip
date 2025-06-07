@@ -5,6 +5,31 @@ template<typename Type>
 using base_type = typename std::remove_reference<Type>::type;
 
 namespace BitLogic {
+    // C++14 does not allow auto typename: error "auto" is not allowed here
+    //template<auto*const reg_addr, unsigned offset, unsigned width, typename RegType=std::decay_t<decltype(reg_addr)>> struct BitField
+    template<typename RegType, RegType& reg, unsigned offset, unsigned width> struct BitField
+    {
+        // Ti compiler says "std has no member is_pointer_v"
+        // static_assert(!std::is_pointer_v<RegType>, "RegType cannot be a pointer, it is a reg or a reference");
+        static_assert(!std::is_pointer<RegType>::value, "RegType cannot be a pointer, it is a reg or a reference");
+        using BaseRegT = std::decay_t<RegType>;
+        static constexpr unsigned reg_size = sizeof(RegType) * 8;
+        static_assert(offset < reg_size, "bit field offset must fit within register");
+        static_assert(width > 0, "bit field width must be > 0");
+        static_assert(width <= (reg_size - offset), "bit field width must fit from offset to the reg end");
+        static constexpr BaseRegT mask =
+            width < reg_size ? (0b1 << width) - 1 : ~BaseRegT{0};
+
+        static constexpr RegType read(void) { return (reg >> offset) & mask; }
+        static constexpr void write(BaseRegT field_val) {
+            //auto new_value = reg | ((field_val & mask) << offset);
+            //reg = new_value;
+            //reg |= (field_val & mask) << offset;
+            BaseRegT new_val = (field_val & mask) << offset;
+            reg = new_val;
+        }
+    };
+
     /** \brief Make a bit mask in an unsigned of type RegT
      * 
      * Use ~regMask<>() to make a mask of zeros.

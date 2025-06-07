@@ -114,6 +114,19 @@ namespace IOPort1Ctrl {
 //#define TASSEL_2               (2*0x100u)     /* Timer A clock source select: 2 - SMCLK */
 //#define TASSEL_3               (3*0x100u)     /* Timer A clock source select: 3 - INCLK */
 
+namespace TiDevices {
+    template<volatile unsigned int& reg_CCTL>
+    struct TimerA {
+        using CCTL_interrupt_enable = BitLogic::BitField<decltype(reg_CCTL), reg_CCTL, 4, 1>;
+    };
+};
+
+namespace TiControllers {
+    namespace MSP430G2553 {
+        using TimerA_0 = TiDevices::TimerA<TA0CCTL0>;
+    };
+};
+
 namespace Timer0_A3 {
     // I use very few regs now:
     //CCTL0 = CCIE;                             // CCR0 interrupt enabled
