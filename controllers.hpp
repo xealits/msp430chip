@@ -6,5 +6,6 @@
 namespace TiControllers {
     namespace MSP430G2553 {
         using TimerA_0 = TiDevices::TimerA<TA0CTL, TA0CCTL0>;
+        using Port1 = TiDevices::Port8bit<P1IN, P1OUT, P1DIR>;
     };
 };

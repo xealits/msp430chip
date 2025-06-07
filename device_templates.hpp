@@ -36,4 +36,46 @@ namespace TiDevices {
 
         using CCTL_interrupt_enable = BitLogic::BitField<decltype(reg_CCTL), reg_CCTL, 4, 1>;
     };
+
+    template<
+        volatile unsigned char& p_in,
+        volatile unsigned char& p_out,
+        volatile unsigned char& p_dir
+        >
+    struct Port8bit {
+        //
+        using reg_type = std::decay_t<decltype(p_in)>;
+
+        //template<reg_type directions>
+        //constexpr static void setDirecionOutputs(void) {
+            //p_dir = directions;
+        //}
+        template<unsigned... bits>
+        constexpr static void setDirecionOutputs(void) {
+            p_dir = BitLogic::regMask<reg_type, bits...>();
+        }
+
+        template<unsigned... bits>
+        constexpr static void toggleOutput(void) {
+            p_out ^= BitLogic::regMask<reg_type, bits...>();
+        }
+
+        template<unsigned... bits>
+        constexpr static void setOutput(void) {
+            p_out |= BitLogic::regMask<reg_type, bits...>();
+        }
+
+        constexpr static void setOutput(reg_type value) {
+            p_out = value;
+        }
+
+        template<unsigned... bits>
+        constexpr static void unsetOutput(void) {
+            p_out &= ~BitLogic::regMask<reg_type, bits...>();
+        }
+
+        constexpr static reg_type readIn(void) {
+            return p_in;
+        }
+    };
 };
