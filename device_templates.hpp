@@ -45,6 +45,7 @@ namespace TiDevices {
     struct Port8bit {
         //
         using reg_type = std::decay_t<decltype(p_in)>;
+        enum PINS {PIN0=0, PIN1=1, PIN2=2, PIN3=3, PIN4=4, PIN5=5, PIN6=6, PIN7=7};
 
         //template<reg_type directions>
         //constexpr static void setDirecionOutputs(void) {
