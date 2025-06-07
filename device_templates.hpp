@@ -2,7 +2,7 @@
 #include "bitlogic.hpp"
 #include <type_traits>
 
-namespace TiDevices {
+namespace devices {
     template<
         volatile unsigned int& reg_CTL,
         volatile unsigned int& reg_CCTL>

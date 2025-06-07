@@ -1,102 +1,48 @@
-Archived the `msp430_cpp` repository. See "Nope, C++ won't go far with cl430".
-Forked it into [`msp430chip` repository](https://github.com/xealits/msp430chip).
-It will contain a bunch of simple headers and scripts to help with mostly-C
-programming the chip.
+A bunch of simple headers with templates of static constexpr classes
+that describe some of Texas Instruments MSP430 chips and some Launchpad boards.
+The templates should serve as handy modern C++ wrappers
+with explicit interfaces to the hardware.
 
-# Nope, C++ won't go far with cl430
+* `devices` namespace contains templates of Texas Instruments devices
+that are used in the controllers, like the [`Timer_A`](https://www.ti.com/lit/ug/slau400f/slau400f.pdf).
+These are templates for purely compile-time singleton structures,
+mostly `struct`s with only `constexpr static` members.
+You are not supposed to instantiate an object out of these structs.
+You only _specialise the template_ with the correct memory addresses
+for the actual devices in the micro-controller,
+which are declared in `msp430*.h` headers from Ti.
+* `TiControllers` namespace contains namespaces for MSP430 controllers, like `MSP430G2553`,
+with specialisations of the devices in the controllers.
+* `LaunchpadBoards` contains definitions for the launchpad boards:
+how the controller pins are wired to something on the board.
 
-So, this compile-time C++ code does not make sense for MSP430, because
-Ti compiler cl430 does not really understand these features. It does not
-inline and does not eliminate these templates of singleton structs with
-constexpr static inline methods. They bloat the program .text memory.
-And surely waste more cycles too.
+There is also the `BitLogic` namespace with utility functions for bit field manipulations.
 
-I would like to use clang to compile this stuff. For the efficiency at
-compile-time, and of course for C++17 or newer, with its constexpr. But
-my main priority is Ti's features. I.e. I'd like to have the suggestions
-from cl430, and the power consumption analysis in future.
+I use the Ti `cl430` compiler for the domain know how,
+on power efficiency and everything else.
+But there are limitations on software side:
+the compiler provides only C++14 standard (unfortunately not 17),
+and it may not optimise C++ code as well as GCC or Clang.
+It is worth to check produced assembly whether the compile-time code
+does not produce unwanted runtime artifacts, like calls to not inlined functions.
 
-So, I am abandoning the C++ features. I'll just make a Python script to
-generate a header with namespaces and functions. I.e. it is just C, but
-with namespaces.
+# To compile in C++14
 
-It optimise an inline function here either:
-```
-namespace IOPort1Ctrl {
-decltype(P1DIR)&  direction_reg = P1DIR;
-...
-};
+Once you have created a Ti Code Composer Studio project (Theia or previous generation Eclipse),
+you can actually just add the `--c++14` option for the `cl430` compiler command
+in the `*.out` build target of the generated `Debug/makefile`.
 
-00fc7c:              main:
-00fc7c:              .text:main:
-00fc7c: 0A12             PUSH    R10
-00fc7e: B240             MOV.W   #0x5a80,&WDTCTL
-00fc80: 805A
-00fc82: 2001
-00fc84: 1F42             MOV.W   &_ZN11IOPort1Ctrl13direction_regE,R15
-00fc86: 0602
-00fc88: FF40             MOV.B   #0x0041,0x0000(R15)
-```
+To set `--c++14` compilation flag in Theia:
+right-click on the project in the Explorer panel,
+Properties, Build, Tools, MSP430 Compiler,
+add `--c++14` in the "MSP430 Compiler flags".
 
-Why not just like with `MOV.W   #0x5a80,&WDTCTL`:
-```
-00fc88: FF40             MOV.B   #0x0041,&_ZN11IOPort1Ctrl13direction_regE
-```
+You can build in `Debug/` by simply calling `make`.
 
-It does not get references? Ok, let's just C it with `#define`s:
-```
-//decltype(P1DIR)&  direction_reg = P1DIR;
-#define direction_reg P1DIR
+Program the chip on Linux with [`mspdebug`](https://github.com/dlbeer/mspdebug):
 
-00fc7c:              main:
-00fc7c:              .text:main:
-00fc7c: 0A12             PUSH    R10
-00fc7e: B240             MOV.W   #0x5a80,&WDTCTL
-00fc80: 805A
-00fc82: 2001
-00fc84: F240             MOV.B   #0x0041,&P1DIR
-```
-
-# C++ programming on msp430
-
-A bunch of C++ function templates, some namespaces and classes to work with `msp430.h` and `msp430g2102.h`.
-There are simple templates to deal with register bit masks,
-and C++ wrappers around the Ti header declarations.
-
-Currently, it's just a bunch of tests with C++ for embedded programming,
-dumped in `reg_funcs.hpp`.
-It it turns out to be handy, I'll separate things into 3 parts:
-general logic & register & bit field handling,
-msp430 chips,
-and the launchpad board.
-
-This code profits from compile-time features, i.e. at least C++17 would be nice to have.
-But the Ti compiler `cl430` currently supports only C++14.
-I try to keep the code to minimum.
-So, if something is not easy to express well purely in C++,
-I will generate the code, most likely with Python.
-I.e. the goal is to have a set of C++ idioms that cover the programming of msp430 well.
-But the user of the library does not care from where came the code for these idioms:
-from C++ compile-time (aka metaprogramming) or it is generated as "hardcoded" by a script.
-It would be nice to have some programmable description of the chip and the board ("datasheet API")
-as the input to the code-generating program.
-
-# To compile in C++
-
-A proper project template is a TODO.
-
-I just modified an example C project in Ti Composer Studio Theia:
-in `Debug/makefile` all `.c` files to `.cpp`.
-The Ti compiler `cl430` does have an option `--c++14` for C++.
-But it is used automatically for `.cpp` endings.
-
-Build in `Debug/` by simply calling `make`.
-
-And program the chip (MSP430G2553 in my case) with [`mspdebug`](https://github.com/dlbeer/mspdebug):
-
-    mspdebug rf2500 "prog msp430g2xx2_1_vlo.cpp.out"
+    sudo mspdebug rf2500 "blinky.out"
 
 I run the Code Composer Studio Theia on Ubuntu Linux,
-and it does not recognize the connected board.
+and it does not recognize the connected board yet.
 But `mspdebug` works fine.
-

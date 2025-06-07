@@ -3,10 +3,10 @@
 #include "msp430g2553.h"
 #include <msp430.h>
 
-namespace TiControllers {
+namespace controllers {
     namespace MSP430G2553 {
-        using TimerA_0 = TiDevices::TimerA<TA0CTL, TA0CCTL0>;
-        using Port1 = TiDevices::Port8bit<P1IN, P1OUT, P1DIR>;
+        using TimerA_0 = devices::TimerA<TA0CTL, TA0CCTL0>;
+        using Port1 = devices::Port8bit<P1IN, P1OUT, P1DIR>;
     };
 };
 
@@ -18,7 +18,7 @@ namespace TiControllers {
  * Use like:
  * namespace board = LaunchpadBoards::MSP_EXP430G2;
  */
-namespace LaunchpadBoards {
+namespace launchpad_boards {
 
 /*! \brief MSP_EXP430G2
  *
@@ -26,11 +26,11 @@ namespace LaunchpadBoards {
  * https://dev.ti.com/tirex/explore/node?devtools=MSP-EXP430G2&node=A__ABjGDxJw12fXjxtYpSJOow__msp430_devtools__FUz-xrs__LATEST
  */
 namespace MSP_EXP430G2 {
-    namespace controller = TiControllers::MSP430G2553;
+    namespace controller = controllers::MSP430G2553;
 
     //! \brief red LED
-    constexpr unsigned LED1 = TiControllers::MSP430G2553::Port1::PIN0;
+    constexpr unsigned LED1 = controllers::MSP430G2553::Port1::PIN0;
     //! \brief green LED
-    constexpr unsigned LED2 = TiControllers::MSP430G2553::Port1::PIN6;
+    constexpr unsigned LED2 = controllers::MSP430G2553::Port1::PIN6;
 };
 };
