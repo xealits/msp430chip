@@ -4,7 +4,7 @@
 template<typename Type>
 using base_type = typename std::remove_reference<Type>::type;
 
-namespace BitLogic {
+namespace bitlogic {
     // C++14 does not allow auto typename: error "auto" is not allowed here
     //template<auto*const reg_addr, unsigned offset, unsigned width, typename RegType=std::decay_t<decltype(reg_addr)>> struct BitField
     template<typename RegType, RegType& reg, unsigned offset, unsigned width>

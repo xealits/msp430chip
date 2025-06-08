@@ -11,12 +11,12 @@ You are not supposed to instantiate an object out of these structs.
 You only _specialise the template_ with the correct memory addresses
 for the actual devices in the micro-controller,
 which are declared in `msp430*.h` headers from Ti.
-* `TiControllers` namespace contains namespaces for MSP430 controllers, like `MSP430G2553`,
+* `controllers` namespace contains namespaces for MSP430 controllers, like `MSP430G2553`,
 with specialisations of the devices in the controllers.
-* `LaunchpadBoards` contains definitions for the launchpad boards:
+* `launchpad_boards` contains definitions for the launchpad boards:
 how the controller pins are wired to something on the board.
 
-There is also the `BitLogic` namespace with utility functions for bit field manipulations.
+There is also the `bitlogic` namespace with utility functions for bit field manipulations.
 
 I use the Ti `cl430` compiler for the domain know how,
 on power efficiency and everything else.
