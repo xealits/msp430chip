@@ -47,3 +47,96 @@ Program the chip on Linux with [`mspdebug`](https://github.com/dlbeer/mspdebug):
 I run the Code Composer Studio Theia on Ubuntu Linux,
 and it does not recognize the connected board yet.
 But `mspdebug` works fine.
+
+# Usage example
+
+An efficient interrupt-based LED blinking:
+```
+#include "msp430chip/controllers.hpp"
+
+namespace board = launchpad_boards::MSP_EXP430G2;
+namespace controller = board::controller;
+
+namespace FsmLED {
+    constexpr decltype(CCR0) CLOCK_DELAY_TICKS_TIMES[2] = {50, 100};
+    unsigned int is_short_tick = 0;
+
+    inline void led_setup(void) {
+        CCR0 = CLOCK_DELAY_TICKS_TIMES[1];
+    }
+
+    inline void led_tick_event(void) {
+        if (is_short_tick) {
+            controller::Port1::toggleOutput<board::LED1>();
+        }
+        else {
+            controller::Port1::toggleOutput<board::LED2>();
+        }
+
+        is_short_tick ^= 1;
+        CCR0 = CLOCK_DELAY_TICKS_TIMES[FsmLED::is_short_tick];
+        TAR = 0;
+    }
+};
+
+// set the interrupt to toggle the output pin
+// Timer A0 interrupt service routine
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void Timer_A (void)
+{
+  FsmLED::led_tick_event();
+}
+
+int main(void)
+{
+    /* busy loop blinking:
+    volatile unsigned int i;
+    WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
+    P1DIR |= 0x01;                            // Set P1.0 to output direction
+
+    while(1)
+    {
+        P1OUT ^= 0x01;                        // Toggle P1.0 using exclusive-OR
+
+        for (i=10000; i>0; i--);
+    }
+    */
+
+    // power-efficient interrupt blinking:
+    WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
+    controller::Port1::setDirecionOutputs<board::LED1, board::LED2>();
+    controller::Port1::toggleOutput<board::LED2>();
+
+    controller::TimerA_0::control_write<
+        controller::TimerA_0::input_clock::set(controller::TimerA_0::INPUT_CLOCK_ACLK) |
+        controller::TimerA_0::clock_divider::set(controller::TimerA_0::DIVIDE_0) |
+        controller::TimerA_0::mode_select::set(controller::TimerA_0::MODE_CONT)
+    >();
+
+    FsmLED::led_setup();
+    controller::TimerA_0::CCTL_interrupt_enable::write(1);
+
+    // let's enter LPM3
+    // if the LED state is off, the board will draw really little current
+    _BIS_SR(LPM3_bits + GIE);
+}
+```
+
+The current draw of the `MSP_EXP430G2` Launchpad can be measured on the board jumpers.
+From [slau318g](https://www.ti.com/lit/ug/slau318g/slau318g.pdf)
+"MSP-EXP430G2 LaunchPad™ Development Kit User's Guide, revised in 2016" section 5.3:
+> The jumper array can also be used to measure the power consumption of the LaunchPad development kit
+application. For this intention, all connections except VCC must be opened, and a multi meter can used on
+the VCC Jumper to measure the current of the MSP-EXP430G2 target device and its peripherals. The
+jumper J5 VCC also must be opened if the LaunchPad development kit is powered with an external power
+supply over J6 Table 1 or the eZ430 interface J4.
+
+From [slau772a](https://www.ti.com/lit/ug/slau772a/slau772a.pdf)
+"MSP430G2553 LaunchPad™ Development Kit (MSP ‑‑EXP430G2ET), revised in 2020"
+section "2.4 Measure MSP430 Current Draw":
+> To measure the current draw of the MSP430G2553 using a multi-meter, use the 3V3 jumper on the J101
+jumper isolation block. The current measured includes the target MCU and any current drawn through the
+BoosterPack plug-in module headers.
+>
+> To measure ultra-low power, follow these steps:
+> ...
