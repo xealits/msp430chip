@@ -1,14 +1,15 @@
 #pragma once
-#include "device_templates.hpp"
-#include "msp430g2553.h"
 #include <msp430.h>
 
+#include "device_templates.hpp"
+#include "msp430g2553.h"
+
 namespace controllers {
-    namespace MSP430G2553 {
-        using TimerA_0 = devices::TimerA<TA0CTL, TA0CCTL0>;
-        using Port1 = devices::Port8bit<P1IN, P1OUT, P1DIR>;
-    };
-};
+namespace MSP430G2553 {
+using TimerA_0 = devices::TimerA<TA0CTL, TA0CCTL0>;
+using Port1 = devices::Port8bit<P1IN, P1OUT, P1DIR>;
+};  // namespace MSP430G2553
+};  // namespace controllers
 
 /*! \brief Launchpad development boards
  *
@@ -26,11 +27,11 @@ namespace launchpad_boards {
  * https://dev.ti.com/tirex/explore/node?devtools=MSP-EXP430G2&node=A__ABjGDxJw12fXjxtYpSJOow__msp430_devtools__FUz-xrs__LATEST
  */
 namespace MSP_EXP430G2 {
-    namespace controller = controllers::MSP430G2553;
+namespace controller = controllers::MSP430G2553;
 
-    //! \brief red LED
-    constexpr unsigned LED1 = controllers::MSP430G2553::Port1::PIN0;
-    //! \brief green LED
-    constexpr unsigned LED2 = controllers::MSP430G2553::Port1::PIN6;
-};
-};
+//! \brief red LED
+constexpr unsigned LED1 = controllers::MSP430G2553::Port1::PIN0;
+//! \brief green LED
+constexpr unsigned LED2 = controllers::MSP430G2553::Port1::PIN6;
+};  // namespace MSP_EXP430G2
+};  // namespace launchpad_boards
