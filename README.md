@@ -24,7 +24,8 @@ But there are limitations on software side:
 the compiler provides only C++14 standard (unfortunately not 17),
 and it may not optimise C++ code as well as GCC or Clang.
 It is worth to check produced assembly whether the compile-time code
-does not produce unwanted runtime artifacts, like calls to not inlined functions.
+does not contain unwanted runtime artifacts,
+like calls to not inlined functions that write literals into the memory mapped devices.
 
 # To compile in C++14
 
