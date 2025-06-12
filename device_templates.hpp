@@ -2,7 +2,6 @@
 #include <type_traits>
 
 #include "bitlogic.hpp"
-#include "msp430g2553.h"
 
 namespace devices {
 template <volatile unsigned int& reg_CTL, volatile unsigned int& reg_CCTL>
@@ -12,11 +11,24 @@ struct TimerA {
   struct Control {
     using reg_t = std::decay_t<decltype(reg_CTL)>;
 
+    //constexpr static typename mode_control::BaseRegT MODE_STOP = 0, MODE_UPTO = 1,
+    //                                                 MODE_CONT = 2, MODE_UPDN = 3;
+
+    enum MODE {MODE_STOP = 0, MODE_UPTO = 1, MODE_CONT = 2, MODE_UPDN = 3};
+
     using unused11 = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 11, 5>;
     using input_clock = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 8, 3>;
 
     using clock_divider = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 6, 2>;
-    using mode_control = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 4, 2>;
+
+    //using mode_control = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 4, 2>;
+    struct mode_control : public bitlogic::BitField<decltype(reg_CTL), reg_CTL, 4, 2> {
+      // it works in clang without this using, but cl430 does not find BaseRegT
+      using BaseRegT = typename mode_control::BaseRegT;
+      static constexpr inline BaseRegT set(MODE value) {
+        return maskValue(static_cast<BaseRegT>(value));
+      }
+    };
 
     using unused3 = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 3, 1>;
     using clear = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 2, 1>;
@@ -30,9 +42,6 @@ struct TimerA {
 
     constexpr static typename clock_divider::BaseRegT DIVIDE_0 = 0, DIVIDE_2 = 1,
                                                       DIVIDE_4 = 2, DIVIDE_8 = 3;
-
-    constexpr static typename mode_control::BaseRegT MODE_STOP = 0, MODE_UPTO = 1,
-                                                     MODE_CONT = 2, MODE_UPDN = 3;
 
     template <reg_t new_val>
     constexpr static inline void write(void) {

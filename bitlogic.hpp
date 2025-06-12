@@ -26,8 +26,12 @@ struct BitField {
   static constexpr BaseRegT mask =
       width < reg_size ? (0b1 << width) - 1 : ~BaseRegT{0};
 
-  static constexpr inline BaseRegT set(BaseRegT value) {
+  static constexpr inline BaseRegT maskValue(BaseRegT value) {
     return (value & mask) << offset;
+  }
+
+  static constexpr inline BaseRegT set(BaseRegT value) {
+    return maskValue(value);
   }
 
   static constexpr RegType read(void) { return (reg >> offset) & mask; }
