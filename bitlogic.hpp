@@ -10,6 +10,8 @@ namespace bitlogic {
 // RegType=std::decay_t<decltype(reg_addr)>> struct BitField
 template <typename RegType, RegType& reg, unsigned offset, unsigned width>
 struct BitField {
+  typedef BitField<RegType, reg, offset, width> BitFieldT;
+
   // Ti compiler says "std has no member is_pointer_v"
   // static_assert(!std::is_pointer_v<RegType>, "RegType cannot be a pointer, it
   // is a reg or a reference");

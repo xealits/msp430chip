@@ -23,10 +23,12 @@ struct TimerA {
 
     //using mode_control = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 4, 2>;
     struct mode_control : public bitlogic::BitField<decltype(reg_CTL), reg_CTL, 4, 2> {
-      // it works in clang without this using, but cl430 does not find BaseRegT
+      // it works in clang without this using, but cl430 does not find BaseRegT and BitFieldT
       using BaseRegT = typename mode_control::BaseRegT;
+      using BitFieldT = typename mode_control::BitFieldT;
       static constexpr inline BaseRegT set(MODE value) {
-        return maskValue(static_cast<BaseRegT>(value));
+        //return maskValue(static_cast<BaseRegT>(value));
+        return BitFieldT::set(static_cast<BaseRegT>(value));
       }
     };
 
