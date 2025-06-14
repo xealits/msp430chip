@@ -1,10 +1,29 @@
 #pragma once
+#include <cassert>
 #include <type_traits>
 
 template <typename Type>
 using base_type = typename std::remove_reference<Type>::type;
 
 namespace bitlogic {
+template <typename RegType, unsigned width>
+constexpr RegType calcMask(void) {
+  return width < (sizeof(RegType) * 8) ? (0b1 << width) - 1 : ~RegType{0};
+}
+
+template <typename BitFieldT>
+struct OptEnum {
+  using RegT = typename BitFieldT::BaseRegT;
+
+  static constexpr RegT mask = calcMask<RegT, BitFieldT::width>();
+  const RegT value;
+  constexpr OptEnum(unsigned opt_val) : value{opt_val} {
+    // assert(value <= mask && "Bitfield value must be <= mask");
+    //  compiler (acpia430) segfaults with this assert
+  }
+  constexpr operator RegT() const { return value; }
+};
+
 // C++14 does not allow auto typename: error "auto" is not allowed here
 // template<auto*const reg_addr, unsigned offset, unsigned width, typename
 // RegType=std::decay_t<decltype(reg_addr)>> struct BitField
@@ -25,8 +44,9 @@ struct BitField {
   static_assert(width <= (reg_size - offset),
                 "bit field width must fit from offset to the reg end");
 
-  static constexpr BaseRegT mask =
-      width < reg_size ? (0b1 << width) - 1 : ~BaseRegT{0};
+  static constexpr BaseRegT mask = calcMask<BaseRegT, width>();
+
+  using OPT = OptEnum<BitFieldT>;
 
   static constexpr inline BaseRegT maskValue(BaseRegT value) {
     return (value & mask) << offset;
@@ -35,6 +55,14 @@ struct BitField {
   static constexpr inline BaseRegT set(BaseRegT value) {
     return maskValue(value);
   }
+
+  static constexpr inline BaseRegT set(const OPT& value) {
+    // return set(static_cast<BaseRegT>(value));
+    return maskValue(value);
+  }
+
+  template <typename T>
+  static constexpr inline BaseRegT set(T value) = delete;
 
   static constexpr RegType read(void) { return (reg >> offset) & mask; }
   static constexpr void write(BaseRegT field_val) {
