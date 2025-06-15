@@ -8,39 +8,28 @@ template <volatile unsigned int& reg_CTL, volatile unsigned int& reg_CCTL0>
 struct TimerA {
   TimerA() = delete;
 
-  struct Control {
-    using reg_t = std::decay_t<decltype(reg_CTL)>;
-
-    using unused11 = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 11, 5>;
-
-    struct input_clock
-        : public bitlogic::BitField<decltype(reg_CTL), reg_CTL, 8, 3> {};
-    constexpr static typename input_clock::OPT INPUT_CLOCK_TACLK{0},
-        INPUT_CLOCK_ACLK{1}, INPUT_CLOCK_SMCLK{2}, INPUT_CLOCK_INCLK{3};
-
-    struct clock_divider
-        : public bitlogic::BitField<decltype(reg_CTL), reg_CTL, 6, 2> {};
-    constexpr static typename clock_divider::OPT DIVIDE_0{0}, DIVIDE_2{1},
-        DIVIDE_4{2}, DIVIDE_8{3};
+  struct Control : public bitlogic::Register<decltype(reg_CTL), reg_CTL> {
+    using taifg = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 0, 1>;
+    using taie = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 1, 1>;
+    using clear = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 2, 1>;
+    using unused3 = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 3, 1>;
 
     struct mode_control
         : public bitlogic::BitField<decltype(reg_CTL), reg_CTL, 4, 2> {};
     constexpr static typename mode_control::OPT MODE_STOP{0}, MODE_UPTO{1},
         MODE_CONT{2}, MODE_UPDN{3};
 
-    using unused3 = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 3, 1>;
-    using clear = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 2, 1>;
-    using taie = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 1, 1>;
-    using taifg = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 0, 1>;
+    struct clock_divider
+        : public bitlogic::BitField<decltype(reg_CTL), reg_CTL, 6, 2> {};
+    constexpr static typename clock_divider::OPT DIVIDE_0{0}, DIVIDE_2{1},
+        DIVIDE_4{2}, DIVIDE_8{3};
 
-    template <reg_t new_val>
-    constexpr static inline void write(void) {
-      reg_CTL = new_val;
-    }
+    struct input_clock
+        : public bitlogic::BitField<decltype(reg_CTL), reg_CTL, 8, 3> {};
+    constexpr static typename input_clock::OPT INPUT_CLOCK_TACLK{0},
+        INPUT_CLOCK_ACLK{1}, INPUT_CLOCK_SMCLK{2}, INPUT_CLOCK_INCLK{3};
 
-    constexpr static inline void write(reg_t new_val) { reg_CTL = new_val; }
-
-    constexpr static inline reg_t read(void) { return reg_CTL; }
+    using unused11 = bitlogic::BitField<decltype(reg_CTL), reg_CTL, 11, 5>;
   };
 
   struct CapComControl0 {

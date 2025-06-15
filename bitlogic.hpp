@@ -74,6 +74,18 @@ struct BitField {
   }
 };
 
+template<typename RegType, RegType& reg>
+struct Register {
+  using reg_t = std::decay_t<RegType>;
+
+  template <reg_t new_val>
+  constexpr static inline void write(void) { reg = new_val; }
+
+  constexpr static inline void write(reg_t new_val) { reg = new_val; }
+
+  constexpr static inline reg_t read(void) { return reg; }
+};
+
 /** \brief Make a bit mask in an unsigned of type RegT
  *
  * Use ~regMask<>() to make a mask of zeros.
