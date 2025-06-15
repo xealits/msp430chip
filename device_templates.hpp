@@ -4,7 +4,7 @@
 #include "bitlogic.hpp"
 
 namespace devices {
-template <volatile unsigned int& reg_CTL, volatile unsigned int& reg_CCTL>
+template <volatile unsigned int& reg_CTL, volatile unsigned int& reg_CCTL0>
 struct TimerA {
   TimerA() = delete;
 
@@ -43,8 +43,25 @@ struct TimerA {
     constexpr static inline reg_t read(void) { return reg_CTL; }
   };
 
-  using CCTL_interrupt_enable =
-      bitlogic::BitField<decltype(reg_CCTL), reg_CCTL, 4, 1>;
+  struct CapComControl0 {
+    using interrupt_flag = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 0, 1>;
+    using capture_overflow = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 1, 1>;
+    using out_x = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 2, 1>;
+    using capture_compare_input = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 3, 1>;
+
+    using interrupt_enable = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 4, 1>;
+    using output_mode = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 5, 3>;
+
+    using capture_or_compare = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 8, 1>;
+    using dummy_0 = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 9, 1>;
+    using synchronised_capture_compare_input = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 10, 1>;
+    using async_sync_capture = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 11, 1>;
+    using input_select = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 12, 2>;
+    using capture_mode = bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 14, 2>;
+  };
+
+  //using CCTL_interrupt_enable =
+  //    bitlogic::BitField<decltype(reg_CCTL0), reg_CCTL0, 4, 1>;
 };
 
 template <volatile unsigned char& p_in, volatile unsigned char& p_out,
