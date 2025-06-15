@@ -8,6 +8,8 @@ namespace controllers {
 namespace MSP430G2553 {
 using TimerA_0 = devices::TimerA<TA0CTL, TA0R, TA0CCTL0, TA0CCR0, TA0CCTL1,
                                  TA0CCR1, TA0CCTL2, TA0CCR2, TA0IV>;
+using TimerA_1 = devices::TimerA<TA1CTL, TA1R, TA1CCTL0, TA1CCR0, TA1CCTL1,
+                                 TA1CCR1, TA1CCTL2, TA1CCR2, TA1IV>;
 using Port1 = devices::Port8bit<P1IN, P1OUT, P1DIR>;
 };  // namespace MSP430G2553
 };  // namespace controllers
