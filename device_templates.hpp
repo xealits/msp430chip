@@ -76,8 +76,10 @@ struct TimerA {
   };
 };
 
+//! \brief basic digital IO port
 template <volatile unsigned char& p_in, volatile unsigned char& p_out,
-          volatile unsigned char& p_dir>
+          volatile unsigned char& p_dir, volatile unsigned char& p_sel,
+          volatile unsigned char& p_sel2, volatile unsigned char& p_en>
 struct Port8bit {
   Port8bit() = delete;
   //
@@ -120,5 +122,15 @@ struct Port8bit {
   }
 
   constexpr static reg_type readIn(void) { return p_in; }
+};
+
+//! \brief digital IO port with external interrupt
+template <volatile unsigned char& p_in, volatile unsigned char& p_out,
+          volatile unsigned char& p_dir, volatile unsigned char& p_ifg,
+          volatile unsigned char& p_ies, volatile unsigned char& p_ie,
+          volatile unsigned char& p_sel, volatile unsigned char& p_sel2,
+          volatile unsigned char& p_en>
+struct Port8bitI : public Port8bit<p_in, p_out, p_dir, p_sel, p_sel2, p_en> {
+  Port8bitI() = delete;
 };
 };  // namespace devices
