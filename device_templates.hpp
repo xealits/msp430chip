@@ -7,6 +7,22 @@ namespace devices {
 using bitlogic::BitField;
 using bitlogic::Register;
 
+// TODO g2553 devices and registers from the header msp430g2553.h
+// here or in controllers.hpp
+// status register? with the named bits, like C, Z, etc
+// LPM bits -- no need for any Cpp wrapping?
+// special function registers -- interrupt enables and flags
+// Interrupt vectors -- also nothing to do with them
+// ADC10 device
+// Basic Clock Module
+// Comparator A
+// Flash Memory
+// finish DIO
+// finish Timer A
+// USCI - I2C, SPI and UART modes
+// Watchdog Timer
+// Clock and other calibration data info
+
 template <volatile unsigned& reg_CTL, volatile unsigned& reg_TAR,
           volatile unsigned& reg_CCTL0, volatile unsigned& reg_CCR0,
           volatile unsigned& reg_CCTL1, volatile unsigned& reg_CCR1,

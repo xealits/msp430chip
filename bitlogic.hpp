@@ -11,6 +11,11 @@ constexpr RegType calcMask(void) {
   return width < (sizeof(RegType) * 8) ? (0b1 << width) - 1 : ~RegType{0};
 }
 
+/// \brief Value options for the bit field
+/// The struct is supposed to be used only as a constexpr.
+/// The value is not a tamplate parameter,
+/// it is not a part of the type definition.
+/// So that you can compare OptEnums etc.
 template <typename BitFieldT>
 struct OptEnum {
   using RegT = typename BitFieldT::BaseRegT;
@@ -27,6 +32,10 @@ struct OptEnum {
 // C++14 does not allow auto typename: error "auto" is not allowed here
 // template<auto*const reg_addr, unsigned offset, unsigned width, typename
 // RegType=std::decay_t<decltype(reg_addr)>> struct BitField
+
+/// \brief Bitfield description
+/// Bitfield is a type defined by the containing register
+/// and the bitfield offset and width.
 template <typename RegType, RegType& reg, unsigned offset, unsigned width>
 struct BitField {
   typedef BitField<RegType, reg, offset, width> BitFieldT;
@@ -74,6 +83,9 @@ struct BitField {
   }
 };
 
+/// \brief Register description
+/// These are control registers. They are statically known and are unique.
+/// The type takes a register reference as a parameter.
 template<typename RegType, RegType& reg>
 struct Register {
   using reg_t = std::decay_t<RegType>;
