@@ -52,12 +52,7 @@ using bitlogic::Register;
 // Clock and other calibration data info
 
 template<typename RegCCTL_t, RegCCTL_t& RegCCTL, typename RegCCR_t, RegCCR_t& RegCCR>
-struct CaptureCompareBlockRegs {
-    using cctl_t = RegCCTL_t;
-    using ccr_t = RegCCR_t;
-    //static constexpr RegCCTL_t& cctl = RegCCTL;
-    //static constexpr RegCCR_t& ccr = RegCCR;
-};
+struct CaptureCompareBlockRegs {};
 
 template<typename CaptureCompareBlockRegs_t>
 struct CaptureCompareBlockTemplate;
