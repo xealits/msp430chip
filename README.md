@@ -27,6 +27,12 @@ It is worth to check produced assembly whether the compile-time code
 does not contain unwanted runtime artifacts,
 like calls to not inlined functions that write literals into memory mapped devices.
 
+Add in `subdir_rules.mk` to the `main.obj` target:
+```
+"...ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/bin/cl430"
+  --keep_asm --asm_listing ...
+```
+
 # To compile in C++14
 
 Once you have created a Ti Code Composer Studio project (Theia or previous generation Eclipse),

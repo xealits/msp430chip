@@ -7,8 +7,26 @@
 namespace controllers {
 namespace MSP430G2553 {
 #if defined(__MSP430G2553__)
-using TimerA_0 = devices::TimerA<TA0CTL, TA0R, TA0CCTL0, TA0CCR0, TA0CCTL1,
-                                 TA0CCR1, TA0CCTL2, TA0CCR2, TA0IV>;
+//using TimerA_0 = devices::TimerA<TA0CTL, TA0R, TA0CCTL0, TA0CCR0, TA0CCTL1,
+//                                 TA0CCR1, TA0CCTL2, TA0CCR2, TA0IV>;
+
+using TimerA_0 = devices::TimerA2<
+    TA0CTL, TA0R,
+    DevPack<CaptureCompareBlockTemplate
+        , CaptureCompareBlockRegs<decltype(TA0CCTL0), TA0CCTL0, decltype(TA0CCR0), TA0CCR0>
+        , CaptureCompareBlockRegs<decltype(TA0CCTL1), TA0CCTL1, decltype(TA0CCR1), TA0CCR1>
+        , CaptureCompareBlockRegs<decltype(TA0CCTL2), TA0CCTL2, decltype(TA0CCR2), TA0CCR2>
+    >
+    , TA0IV>;
+
+// nope, cannot define it outside the namespace
+// TimerA_0::capcoms_t TimerA_0::capcoms = {{{TA0CCTL0, TA0CCR0}}};
+
+// "../msp430chip/controllers.hpp", line 13:
+// error #553: member "devices::TimerA<reg_CTL, reg_TAR, reg_CCTL0, reg_CCR0, reg_CCTL1, reg_CCR1, reg_CCTL2, reg_CCR2, reg_TAIV, n_ccrx>::capcoms [with reg_CTL=TA0CTL, reg_TAR=TA0R, reg_CCTL0=TA0CCTL0, reg_CCR0=TA0CCR0, reg_CCTL1=TA0CCTL1, reg_CCR1=TA0CCR1, reg_CCTL2=TA0CCTL2, reg_CCR2=TA0CCR2, reg_TAIV=TA0IV, n_ccrx=1U]"
+// cannot be defined in the current scope
+// GCC and Clang do it fine
+
 using TimerA_1 = devices::TimerA<TA1CTL, TA1R, TA1CCTL0, TA1CCR0, TA1CCTL1,
                                  TA1CCR1, TA1CCTL2, TA1CCR2, TA1IV>;
 using Port1 = devices::Port8bitI<P1IN, P1OUT, P1DIR, P1IFG, P1IES, P1IE, P1SEL,
