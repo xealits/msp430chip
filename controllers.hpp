@@ -7,8 +7,11 @@
 namespace controllers {
 namespace MSP430G2553 {
 #if defined(__MSP430G2553__)
-//using TimerA_0 = devices::TimerA<TA0CTL, TA0R, TA0CCTL0, TA0CCR0, TA0CCTL1,
-//                                 TA0CCR1, TA0CCTL2, TA0CCR2, TA0IV>;
+using TimerA_0_original = devices::TimerA<TA0CTL, TA0R, TA0CCTL0, TA0CCR0, TA0CCTL1,
+                                 TA0CCR1, TA0CCTL2, TA0CCR2, TA0IV>;
+
+using devices::CaptureCompareBlockTemplate;
+using devices::CaptureCompareBlockRegs;
 
 using TimerA_0 = devices::TimerA2<
     TA0CTL, TA0R,
@@ -58,7 +61,9 @@ namespace controller = controllers::MSP430G2553;
 
 //! \brief red LED
 constexpr unsigned LED1 = controllers::MSP430G2553::Port1::PIN0;
+constexpr unsigned LED_RED = LED1;
 //! \brief green LED
 constexpr unsigned LED2 = controllers::MSP430G2553::Port1::PIN6;
+constexpr unsigned LED_GREEN = LED2;
 };  // namespace MSP_EXP430G2
 };  // namespace launchpad_boards

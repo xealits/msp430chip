@@ -16,45 +16,40 @@ struct IndexedDevPack;
 template <unsigned dev_i, template <typename> class DevTemplate, typename FirstRef, typename... RestRefs>
 struct IndexedDevPack<dev_i, DevTemplate, FirstRef, RestRefs...> {
     static_assert(dev_i > 0, "Index out of bounds");
-    struct Dev : public IndexedDevPack<dev_i, DevTemplate, RestRefs...>::Dev
-    { };
+    struct Dev : public IndexedDevPack<dev_i, DevTemplate, RestRefs...>::Dev {};
 
-    //template<unsigned n>
-    //struct Index : public DevPack<DevTemplate, RestRefs...>::template Index<n - 1> {
-        //static_assert(n > 0, "Index out of bounds");
-    //};
-
-    //template<>
-    //// "../msp430chip/device_templates.hpp", line 22: error #793: explicit specialization is not allowed in the current scope
-    //// it looks like this is indeed a rule in 14 -- GCC complains about it in 14 and in 20
-    //// but Clang ignores it?
-    ////struct Index<0> : public IndexedDev<0, DeviceTemplate<First>>
-    //struct Index<0> : public DevTemplate<FirstRef>
-    //{};
 };
 
 template <template <typename> class DevTemplate, typename FirstRef, typename... RestRefs>
 struct IndexedDevPack<0, DevTemplate, FirstRef, RestRefs...> {
-    struct Dev : public DevTemplate<FirstRef>
-    { };
+    struct Dev : public DevTemplate<FirstRef> {};
 };
-
-// template<>
-//struct DevPack<DevTemplate, FirsRef, RestRefs...> {
-
-//template <template <typename> class DevTemplate, typename LastRef>
-//struct DevPack<DevTemplate, LastRef> {
-    //template<unsigned n>
-    //struct Index : public DevTemplate<LastRef> {
-        //static_assert(n == 0, "Index out of bounds");
-    //};
-//};
 
 template <template <typename> class DevTemplate, typename... RegRefTs>
 struct DevPack {
     template<unsigned dev_i>
     struct Dev : public IndexedDevPack<dev_i, DevTemplate, RegRefTs...>::Dev {};
 };
+
+namespace devices {
+using bitlogic::BitField;
+using bitlogic::Register;
+
+// TODO g2553 devices and registers from the header msp430g2553.h
+// here or in controllers.hpp
+// status register? with the named bits, like C, Z, etc
+// LPM bits -- no need for any Cpp wrapping?
+// special function registers -- interrupt enables and flags
+// Interrupt vectors -- also nothing to do with them
+// ADC10 device
+// Basic Clock Module
+// Comparator A
+// Flash Memory
+// finish DIO
+// finish Timer A
+// USCI - I2C, SPI and UART modes
+// Watchdog Timer
+// Clock and other calibration data info
 
 template<typename RegCCTL_t, RegCCTL_t& RegCCTL, typename RegCCR_t, RegCCR_t& RegCCR>
 struct CaptureCompareBlockRegs {
@@ -64,21 +59,12 @@ struct CaptureCompareBlockRegs {
     //static constexpr RegCCR_t& ccr = RegCCR;
 };
 
-using bitlogic::BitField;
-using bitlogic::Register;
-
-//using bitlogic::Register2;
-//using bitlogic::BitField2;
-//template<typename CaptureCompareBlockRegs_t>
-//struct CaptureCompareBlockTemplate;
-
 template<typename CaptureCompareBlockRegs_t>
 struct CaptureCompareBlockTemplate;
 
 template<typename RegCCTL_t, RegCCTL_t& RegCCTL, typename RegCCR_t, RegCCR_t& RegCCR>
 struct CaptureCompareBlockTemplate<CaptureCompareBlockRegs<RegCCTL_t, RegCCTL, RegCCR_t, RegCCR>> {
 
-  //template <typename RegCCTL_t, RegCCTL_t& RegCCTL>
   struct CapComControl : public Register<RegCCTL_t, RegCCTL> {
     using interrupt_flag = BitField<RegCCTL_t, RegCCTL, 0, 1>;
     using capture_overflow = BitField<RegCCTL_t, RegCCTL, 1, 1>;
@@ -97,71 +83,9 @@ struct CaptureCompareBlockTemplate<CaptureCompareBlockRegs<RegCCTL_t, RegCCTL, R
     using capture_mode = BitField<RegCCTL_t, RegCCTL, 14, 2>;
   };
 
-  //using CapComReg = Register<RegCCR_t, RegCCR>;
-  struct CapComReg : public Register<RegCCR_t, RegCCR>
-  {};
-
-  //static constexpr typename CaptureCompareBlockRegs_t::cctl_t& cctl_ref
-    //= CaptureCompareBlockRegs_t::
-        //cctl;
-  //CapComControl<typename CaptureCompareBlockRegs_t::cctl_t, cctl_ref> CapComCtl;
-  //Register<typename CaptureCompareBlockRegs_t::ccr_t, CaptureCompareBlockRegs_t::ccr> CapComReg;
-  //using CapComCtl = CapComControl<typename CaptureCompareBlockRegs_t::cctl_t, cctl_ref>;
-  //using CapComCtl = CapComControl<typename CaptureCompareBlockRegs_t::cctl_t, CaptureCompareBlockRegs_t::cctl>;
-
-  // GCC and Clang also fail on this for C++14 ....................................
-  // It is fixed in 17.
-  // fing Ti with their compiler.
-
-//  using CapComCtl = CapComControl<typename CaptureCompareBlockRegs_t::cctl_t, CaptureCompareBlockRegs_t::cctl>;
-//
-//  //template <typename RegCCTL_t, RegCCTL_t& reg_CCTL>
-//  struct CapComControl : public Register<RegCCTL_t, reg_CCTL> {
-//    using interrupt_flag = BitField<RegCCTL_t, reg_CCTL, 0, 1>;
-//    using capture_overflow = BitField<RegCCTL_t, reg_CCTL, 1, 1>;
-//    using out_x = BitField<RegCCTL_t, reg_CCTL, 2, 1>;
-//    using capcom_input = BitField<RegCCTL_t, reg_CCTL, 3, 1>;
-//
-//    using interrupt_enable = BitField<RegCCTL_t, reg_CCTL, 4, 1>;
-//    using output_mode = BitField<RegCCTL_t, reg_CCTL, 5, 3>;
-//
-//    using capture_or_compare = BitField<RegCCTL_t, reg_CCTL, 8, 1>;
-//    using dummy_0 = BitField<RegCCTL_t, reg_CCTL, 9, 1>;
-//    using sync_capcom_input = BitField<RegCCTL_t, reg_CCTL, 10, 1>;
-//    using async_sync_capture = BitField<RegCCTL_t, reg_CCTL, 11, 1>;
-//
-//    using input_select = BitField<RegCCTL_t, reg_CCTL, 12, 2>;
-//    using capture_mode = BitField<RegCCTL_t, reg_CCTL, 14, 2>;
-//  };
-
-  //Register2<typename CaptureCompareBlockRegs_t::ccr_t> ccr;
-  //CaptureCompareBlockRegs_t::ccr_t Register2<typename CaptureCompareBlockRegs_t::ccr_t> ccr::reg = CaptureCompareBlockRegs_t::ccr;
-  // static constexpr requires an in-class initialiser...
+  struct CapComReg : public Register<RegCCR_t, RegCCR> {};
 };
 
-
-namespace devices {
-using bitlogic::BitField;
-using bitlogic::Register;
-
-//using bitlogic::Register2;
-//using bitlogic::BitField2;
-
-// TODO g2553 devices and registers from the header msp430g2553.h
-// here or in controllers.hpp
-// status register? with the named bits, like C, Z, etc
-// LPM bits -- no need for any Cpp wrapping?
-// special function registers -- interrupt enables and flags
-// Interrupt vectors -- also nothing to do with them
-// ADC10 device
-// Basic Clock Module
-// Comparator A
-// Flash Memory
-// finish DIO
-// finish Timer A
-// USCI - I2C, SPI and UART modes
-// Watchdog Timer
-// Clock and other calibration data info
 
 /// \brief TimerA template with variable number of Capture/Compare blocks
 template <volatile unsigned& reg_CTL, volatile unsigned& reg_TAR,
