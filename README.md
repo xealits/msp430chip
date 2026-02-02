@@ -33,6 +33,9 @@ Add in `subdir_rules.mk` to the `main.obj` target:
   --keep_asm --asm_listing ...
 ```
 
+Add `-O[off01234]` for optimisation levels.
+The `cl430` help message says that it defaults to 2, but I don't see it. Without explicitly setting `-O2`, the binary comes out a couple bytes larger dues to unnecessary references.
+
 # To compile in C++14
 
 Once you have created a Ti Code Composer Studio project (Theia or previous generation Eclipse),
