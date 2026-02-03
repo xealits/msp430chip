@@ -17,7 +17,6 @@ template <unsigned dev_i, template <typename> class DevTemplate, typename FirstR
 struct IndexedDevPack<dev_i, DevTemplate, FirstRef, RestRefs...> {
     static_assert(dev_i > 0, "Index out of bounds");
     struct Dev : public IndexedDevPack<dev_i, DevTemplate, RestRefs...>::Dev {};
-
 };
 
 template <template <typename> class DevTemplate, typename FirstRef, typename... RestRefs>
@@ -28,7 +27,7 @@ struct IndexedDevPack<0, DevTemplate, FirstRef, RestRefs...> {
 template <template <typename> class DevTemplate, typename... RegRefTs>
 struct DevPack {
     template<unsigned dev_i>
-    struct Dev : public IndexedDevPack<dev_i, DevTemplate, RegRefTs...>::Dev {};
+    struct DevByIndex : public IndexedDevPack<dev_i, DevTemplate, RegRefTs...>::Dev {};
 };
 
 namespace devices {
@@ -116,7 +115,8 @@ struct TimerA2 {
 
   struct TimerReg : public Register<decltype(reg_TAR), reg_TAR> {};
 
-  using ccblocks = CaptureCompareBlocks_t;
+  template<unsigned dev_i>
+  using ccblocks = typename CaptureCompareBlocks_t::template DevByIndex<dev_i>;
 
   struct InterruptVector : public Register<decltype(reg_TAIV), reg_TAIV> {
     using contents = BitField<decltype(reg_TAIV), reg_TAIV, 1, 4>;
