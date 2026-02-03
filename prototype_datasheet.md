@@ -1,6 +1,8 @@
-% Ridiculous Digital Datasheet for MSP430G2xx and MSP430F2xx
-% Alex Toldaiev
-% February 2, 2026
+---
+title: Ridiculous Digital Datasheet for MSP430G2xx and MSP430F2xx
+author: Alex Toldaiev
+date: February 2, 2026
+---
 
 # Introduction
 
