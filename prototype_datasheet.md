@@ -23,9 +23,11 @@ Let's try on the TimerA and its Capture/Compare blocks.
 # TimerA
 
 <div class="device" id="TimerA">
+<summary>
 Device template name: <dfn class="cpp_name">TimerA</dfn>
 
 TimerA device info summary.
+</summary>
 
 <details>
 <summary>
@@ -35,7 +37,9 @@ Registers and sub-devices.
 <ul>
 <li>
 <div class="register" id="TimerA.Control">
+<summary>
 Register type name: <dfn>Control</dfn>
+</summary>
 <details>
 <summary>
 Control register fields.
