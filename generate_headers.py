@@ -53,6 +53,5 @@ print(len(devices))
 # get just the registers
 for dev in devices:
     # markdown wraps with the <p>s....
-    print(dev.select_one("summary dfn").text.strip())
-    regs = dev.select("details div.register summary dfn")
-    print([reg.text.strip() for reg in regs])
+    # this is it:
+    print(dev.select_one("dfn:not(details dfn)").text.strip())

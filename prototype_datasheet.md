@@ -22,12 +22,23 @@ Let's try on the TimerA and its Capture/Compare blocks.
 
 # TimerA
 
+First, let's try `this`{.foo} feature in Pandoc?
+
+[The whole paragraph as a span?]{.foo}
+
+And let's try it on lists?
+
+* []{.foo}Here is a top item -- no way to attach the class to the item.
+  - And a [sub-item]{.bar}.
+
+* Another top item.
+
+Yep, it's BS.
+
 <div class="device" id="TimerA">
-<summary>
 Device template name: <dfn class="cpp_name">TimerA</dfn>
 
 TimerA device info summary.
-</summary>
 
 <details>
 <summary>
