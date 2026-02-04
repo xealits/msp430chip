@@ -46,25 +46,21 @@ Registers and sub-devices.
 </summary>
 
 <ul>
-<li>
-<div class="register" id="TimerA.Control">
-<summary>
+<li class="register" id="TimerA.Control">
 Register type name: <dfn>Control</dfn>
-</summary>
 <details>
 <summary>
 Control register fields.
 </summary>
 
 <ul>
-<li><div class="field"> <dfn>taifg</dfn>   <data class="offset">0</data> <data class="width">1</data> </div></li>
-<li><div class="field"> <dfn>taie</dfn>    <data class="offset">1</data> <data class="width">1</data> </div></li>
-<li><div class="field"> <dfn>clear</dfn>   <data class="offset">2</data> <data class="width">1</data> </div></li>
-<li><div class="field"> <dfn>unused3</dfn> <data class="offset">3</data> <data class="width">1</data> </div></li>
+<li class="field"> <dfn>taifg</dfn>   <span class="offset">0</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>taie</dfn>    <span class="offset">1</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>clear</dfn>   <span class="offset">2</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>unused3</dfn> <span class="offset">3</span> <span class="width">1</span> </li>
 
-<li>
-<div class="field"><dfn>mode_control</dfn>
-<data class="offset">4</data> <data class="width">2</data>
+<li class="field"><dfn>mode_control</dfn>
+<span class="offset">4</span> <span class="width">2</span>
 <details>
   <summary>Value options.</summary>
   <data class="value_option" value="0">MODE_STOP</data>
@@ -72,12 +68,10 @@ Control register fields.
   <data class="value_option" value="2">MODE_CONT</data>
   <data class="value_option" value="3">MODE_UPDN</data>
 </details>
-</div>
 </li>
 
-<li>
-<div class="field"> <dfn>clock_divider</dfn>
-<data class="offset">6</data> <data class="width">2</data>
+<li class="field"> <dfn>clock_divider</dfn>
+<span class="offset">6</span> <span class="width">2</span>
 <details>
   <summary>Value options.</summary>
   <data class="value_option" value="0">DIVIDE_0</data>
@@ -85,12 +79,10 @@ Control register fields.
   <data class="value_option" value="2">DIVIDE_4</data>
   <data class="value_option" value="3">DIVIDE_8</data>
 </details>
-</div>
 </li>
 
-<li>
-<div class="field"> <dfn>input_clock</dfn>
-<data class="offset">8</data> <data class="width">3</data>
+<li class="field"> <dfn>input_clock</dfn>
+<span class="offset">8</span> <span class="width">3</span>
 <details>
   <summary>Value options.</summary>
   <data class="value_option" value="0">INPUT_CLOCK_TACLK</data>
@@ -98,28 +90,21 @@ Control register fields.
   <data class="value_option" value="2">INPUT_CLOCK_SMCLK</data>
   <data class="value_option" value="3">INPUT_CLOCK_INCLK</data>
 </details>
-</div>
 </li>
 
-<li>
-<div class="field"> <dfn>unused11</dfn>
-<data class="offset">11</data> <data class="width">5</data>
-</div>
+<li class="field"> <dfn>unused11</dfn>
+<span class="offset">11</span> <span class="width">5</span>
 </li>
 
 </ul>
 </details>
-</div>
 </li>
 
-<li>
-<div class="register" id="TimerA.TimerReg">
+<li class="register" id="TimerA.TimerReg">
 Register type name: <dfn>TimerReg</dfn>
-</div>
 </li>
 
-<li>
-<div class="device" id="TimerA.CaptureCompareBlock">
+<li class="device" id="TimerA.CaptureCompareBlock">
 Device template name: <dfn>CaptureCompareBlock</dfn>.
 
 TimerA can have 2-3 identical Capture/Compare blocks.
@@ -131,57 +116,54 @@ Registers and subdevices of a Capture/Compare Block.
 </summary>
 
 <ul>
-<li>
-<div class="register" id="TimerA.CaptureCompareBlock.Control">
+<li class="register" id="TimerA.CaptureCompareBlock.Control">
 Register type name: <dfn>CapComControl</dfn>
 <details>
 <summary>
 Fields.
 </summary>
 
-<div class="field"> <dfn>interrupt_flag</dfn>   <data class="offset">0</data> <data class="width">1</data> </div>
-<div class="field"> <dfn>capture_overflow</dfn> <data class="offset">1</data> <data class="width">1</data> </div>
-<div class="field"> <dfn>out_x</dfn>            <data class="offset">2</data> <data class="width">1</data> </div>
-<div class="field"> <dfn>capcom_input</dfn>     <data class="offset">3</data> <data class="width">1</data> </div>
+<ul>
+<li class="field"> <dfn>interrupt_flag</dfn>   <span class="offset">0</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>capture_overflow</dfn> <span class="offset">1</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>out_x</dfn>            <span class="offset">2</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>capcom_input</dfn>     <span class="offset">3</span> <span class="width">1</span> </li>
 
-<div class="field"> <dfn>interrupt_enable</dfn>   <data class="offset">4</data> <data class="width">1</data> </div>
-<div class="field"> <dfn>output_mode</dfn>        <data class="offset">5</data> <data class="width">3</data> </div>
+<li class="field"> <dfn>interrupt_enable</dfn>   <span class="offset">4</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>output_mode</dfn>        <span class="offset">5</span> <span class="width">3</span> </li>
 
-<div class="field"> <dfn>capture_or_compare</dfn> <data class="offset">8</data> <data class="width">1</data> </div>
-<div class="field"> <dfn>dummy_0</dfn>            <data class="offset">9</data> <data class="width">1</data> </div>
-<div class="field"> <dfn>sync_capcom_input</dfn>  <data class="offset">10</data> <data class="width">1</data> </div>
-<div class="field"> <dfn>async_sync_capture</dfn> <data class="offset">11</data> <data class="width">1</data> </div>
+<li class="field"> <dfn>capture_or_compare</dfn> <span class="offset">8</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>dummy_0</dfn>            <span class="offset">9</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>sync_capcom_input</dfn>  <span class="offset">10</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>async_sync_capture</dfn> <span class="offset">11</span> <span class="width">1</span> </li>
 
-<div class="field"> <dfn>input_select</dfn>       <data class="offset">12</data> <data class="width">2</data> </div>
-<div class="field"> <dfn>capture_mode</dfn>       <data class="offset">14</data> <data class="width">2</data> </div>
+<li class="field"> <dfn>input_select</dfn>       <span class="offset">12</span> <span class="width">2</span> </li>
+<li class="field"> <dfn>capture_mode</dfn>       <span class="offset">14</span> <span class="width">2</span> </li>
+</ul>
+
 </details>
-</div>
 </li>
 
-<li>
-<div class="register" id="TimerA.CaptureCompareBlock.Register">
+<li class="register" id="TimerA.CaptureCompareBlock.Register">
 Register type name: <dfn>CapComReg</dfn>.
-</div>
 </li>
 
 </ul>
 
 </details>
-
-</div>
 </li>
 
-<li>
-<div class="register" id="TimerA.InterruptVector">
+<li class="register" id="TimerA.InterruptVector">
 Register type name: <dfn>InterruptVector</dfn>
 <details>
 <summary>Fields.</summary>
 
-<div class="field"> <dfn>contents</dfn> <data class="offset">1</data> <data class="width">4</data> </div>
+<ul>
+<li class="field"> <dfn>contents</dfn> <span class="offset">1</span> <span class="width">4</span> </li>
+</ul>
 </details>
-</div>
-</li>
 
+</li>
 </ul>
 </details>
 </div>

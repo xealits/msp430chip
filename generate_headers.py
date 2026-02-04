@@ -47,11 +47,31 @@ def find_topmost(soup, tag, class_ = None):
 #print(len(soup.select("div.device")))
 #print(len(soup.find_all("div")))
 #print(len(soup.find_all(top_most("div", "device"), "div", class_="device")))
+# top devices are divs
+# so that HTML does not require its text rules
+# which are applied to sections and everything
 devices = find_topmost(soup, "div", "device")
 print(len(devices))
 
 # get just the registers
 for dev in devices:
-    # markdown wraps with the <p>s....
-    # this is it:
-    print(dev.select_one("dfn:not(details dfn)").text.strip())
+    # select starting from the current node (:scope)
+    # dfn tags that are not part of details
+    dev_name = dev.select_one(":scope dfn:not(:scope details dfn)").text.strip()
+    print(dev_name)
+
+    substr = dev.select_one(":scope details")
+
+    # then regs are in details
+    # and they are always listed as li of ul
+    regs = substr.select(":scope li.register:not(:scope details li.register)")
+
+    # this kind of works:
+    #reg_names = [reg.select(":scope > dfn") for reg in regs]
+    # but I want to keep the any-descendants flexibility
+    reg_names = [reg.select(":scope dfn:not(:scope details dfn)") for reg in regs]
+    print(len(regs), reg_names)
+
+    subdevs = substr.select(":scope li.device:not(:scope details li.device)")
+    dev_names = [dev.select(":scope dfn:not(:scope details dfn)") for dev in subdevs]
+    print(len(subdevs), dev_names)
