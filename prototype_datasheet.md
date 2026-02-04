@@ -35,7 +35,7 @@ And let's try it on lists?
 
 Yep, it's BS.
 
-<div class="device" id="TimerA">
+<div class="device_template" id="TimerA">
 Device template name: <dfn class="cpp_name">TimerA</dfn>
 
 TimerA device info summary.
@@ -104,7 +104,7 @@ Control register fields.
 Register type name: <dfn>TimerReg</dfn>
 </li>
 
-<li class="device" id="TimerA.CaptureCompareBlock">
+<li class="device_template" id="TimerA.CaptureCompareBlock">
 Device template name: <dfn>CaptureCompareBlock</dfn>.
 
 TimerA can have 2-3 identical Capture/Compare blocks.

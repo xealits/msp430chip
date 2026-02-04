@@ -7,6 +7,7 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 from sys import argv
+from pprint import pprint
 
 fname = Path(argv[1])
 
@@ -14,24 +15,6 @@ with open(fname, 'r') as f:
     example_s = f.read()
     
 soup = BeautifulSoup(example_s, 'html.parser')
-#soup.select(".perf_records")[0].select("summary")[0]
-#soup.select(".perf_records")[0].find("summary").find("var").get_text(strip=True)
-#'testing X'
-
-def top_most(tag, class_=None):
-    def matcher(element):
-        if class_ is not None:
-            same_parents = element.find_parents(tag, class_=class_)
-        else:
-            same_parents = element.find_parents(tag)
-
-        element_is_topmost = len(same_parents) == 0
-        #if len(same_parents) > 0:
-        #    return False
-        #return True
-        return element_is_topmost
-
-    return matcher
 
 def find_topmost(soup, tag, class_ = None):
     if class_ is not None:
@@ -44,34 +27,47 @@ def find_topmost(soup, tag, class_ = None):
 
     return found_els
 
-#print(len(soup.select("div.device")))
-#print(len(soup.find_all("div")))
-#print(len(soup.find_all(top_most("div", "device"), "div", class_="device")))
-# top devices are divs
-# so that HTML does not require its text rules
-# which are applied to sections and everything
-devices = find_topmost(soup, "div", "device")
-print(len(devices))
+def parse_register(bs_elem):
+    name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
+    width = 32
+    cpp_type = {32: "uint32_t"}[width]
+    info = {"width": width, "cpp_type": cpp_type}
+    return name, info
+
+def parse_device_template(bs_elem, known_templates={}):
+    dev_name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
+    if dev_name in device_templates:
+        raise Exception(f"Device template {dev_name} already exists")
+
+    templ = {}
+    known_templates[dev_name] = templ
+
+    substr = bs_elem.select_one(":scope details")
+
+    # parse registers
+    regs = substr.select(":scope li.register:not(:scope details li.register)")
+    dev_registers = {}
+    templ["registers"] = dev_registers
+    for reg in regs:
+        name, info = parse_register(reg)
+        assert name not in dev_registers
+        dev_registers[name] = info
+
+    # TODO: parse unique sub-devices
+
+    # parse sub-device templates
+    # "templates" are sub-devices that can appear in variable number
+    subdev_templates = substr.select(":scope li.device_template:not(:scope details li.device_template)")
+    for subdev in subdev_templates:
+        parse_device_template(subdev, known_templates)
+
+device_templates = {}
+
+devices = find_topmost(soup, "div", "device_template")
+print("Number of top-level devices:", len(devices))
 
 # get just the registers
 for dev in devices:
-    # select starting from the current node (:scope)
-    # dfn tags that are not part of details
-    dev_name = dev.select_one(":scope dfn:not(:scope details dfn)").text.strip()
-    print(dev_name)
+    parse_device_template(dev, device_templates)
 
-    substr = dev.select_one(":scope details")
-
-    # then regs are in details
-    # and they are always listed as li of ul
-    regs = substr.select(":scope li.register:not(:scope details li.register)")
-
-    # this kind of works:
-    #reg_names = [reg.select(":scope > dfn") for reg in regs]
-    # but I want to keep the any-descendants flexibility
-    reg_names = [reg.select(":scope dfn:not(:scope details dfn)") for reg in regs]
-    print(len(regs), reg_names)
-
-    subdevs = substr.select(":scope li.device:not(:scope details li.device)")
-    dev_names = [dev.select(":scope dfn:not(:scope details dfn)") for dev in subdevs]
-    print(len(subdevs), dev_names)
+pprint(device_templates)
