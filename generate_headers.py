@@ -27,12 +27,34 @@ def find_topmost(soup, tag, class_ = None):
 
     return found_els
 
+def parse_field(bs_elem):
+    name = bs_elem.select_one(":scope dfn").text.strip()
+    offset = int(bs_elem.select_one(":scope span.offset").text.strip())
+    width = int(bs_elem.select_one(":scope span.width").text.strip())
+    info = {"offset": offset, "width": width}
+    return name, info
+
 def parse_register(bs_elem):
     name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
     width = 32
     cpp_type = {32: "uint32_t"}[width]
-    info = {"width": width, "cpp_type": cpp_type}
-    return name, info
+    reg_info = {"width": width, "cpp_type": cpp_type}
+
+    # reg fields
+    reg_fields = {}
+    reg_info["fields"] = reg_fields
+
+    substr = bs_elem.select_one(":scope details")
+    bs_fields = []
+    if substr:
+        bs_fields = substr.select(":scope li.field") or []
+
+    for field_elem in bs_fields:
+        field_name, field_info = parse_field(field_elem)
+        assert field_name not in reg_fields
+        reg_fields[field_name] = field_info
+
+    return name, reg_info
 
 def parse_device_template(bs_elem, known_templates={}):
     dev_name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
