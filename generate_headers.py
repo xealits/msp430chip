@@ -9,6 +9,7 @@ from pathlib import Path
 from sys import argv
 from pprint import pprint
 from dataclasses import dataclass, field
+from textwrap import indent
 
 fname = Path(argv[1])
 
@@ -29,24 +30,38 @@ def find_topmost(soup, tag, class_ = None):
     return found_els
 
 reg_field_template = "using {name} = BitField<decltype({reg_ref}), {reg_ref}, {offset}, {width}>;"
+reg_field_options_template = "constexpr static typename {name}::OPT{opts};"
 reg_template = "struct {name} : public Register<decltype({reg_ref}), {reg_ref}> {body};"
 device_template = """
 template<{reg_declarations}>
 struct {name} {{
   {name}() = delete;
 
-  {reg_definitions}
+{reg_definitions}
 }};
 """
+
+@dataclass
+class RegFieldOptValue:
+    name: str
+    bits: int
 
 @dataclass
 class RegField:
     name: str
     offset: int
     width: int
+    option_values: list = field(default_factory=list)
 
-    def to_cpp(self, reg_ref):
-        return reg_field_template.format(name=self.name, reg_ref=reg_ref, offset=self.offset, width=self.width)
+    def to_cpp(self, reg_ref, indentation=0):
+        contents = reg_field_template.format(name=self.name, reg_ref=reg_ref, offset=self.offset, width=self.width)
+
+        if self.option_values:
+            opts = "\n  " + "\n  ".join(f"{opt.name}{{{opt.bits}}}" for opt in self.option_values)
+            opts_defs = reg_field_options_template.format(name=self.name, opts=opts)
+            contents += "\n" + opts_defs
+
+        return indent(contents, "  "*indentation)
 
 @dataclass
 class Register:
@@ -61,13 +76,15 @@ class Register:
 
         raise AttributeError(f"'Register' object has no attribute {name}")
 
-    def to_cpp(self, reg_ref):
-        fields_str = '\n'.join("  " + f.to_cpp(reg_ref) for f in self.fields.values())
+    def to_cpp(self, reg_ref, indentation=0):
+        fields_str = '\n'.join(f.to_cpp(reg_ref, 1) for f in self.fields.values())
         if fields_str:
             body = f"{{\n{fields_str}\n}}"
         else:
             body = "{}"
-        return reg_template.format(name=self.name, reg_ref=reg_ref, body=body)
+
+        contents = reg_template.format(name=self.name, reg_ref=reg_ref, body=body)
+        return indent(contents, "  "*indentation)
 
 # TODO: there are 2 types of devices: unique and templates
 @dataclass
@@ -75,7 +92,7 @@ class Device:
     name: str
     registers: dict = field(default_factory=dict)
 
-    def to_cpp(self):
+    def to_cpp(self, indentation=0):
         reg_decls = []
         reg_defs = []
         for reg in self.registers.values():
@@ -84,19 +101,33 @@ class Device:
             reg_decl = f"volatile {cpp_type}& {reg_ref}"
 
             reg_decls.append(reg_decl)
-            reg_defs.append(reg.to_cpp(reg_ref))
+            reg_defs.append(reg.to_cpp(reg_ref, indentation+1))
 
-        reg_decls = "\n".join(reg_decls)
-        reg_defs = "\n".join(reg_defs)
+        space = " " * len("template<")
+        reg_decls = f",\n{space}".join(reg_decls)
+        reg_defs = "\n\n".join(reg_defs)
 
-        return device_template.format(name=self.name, reg_declarations=reg_decls, reg_definitions=reg_defs)
+        contents = device_template.format(name=self.name, reg_declarations=reg_decls, reg_definitions=reg_defs)
+        return indent(contents, "  "*indentation)
 
 def parse_field(bs_elem):
     name = bs_elem.select_one(":scope dfn").text.strip()
     offset = int(bs_elem.select_one(":scope span.offset").text.strip())
     width = int(bs_elem.select_one(":scope span.width").text.strip())
     #info = {"offset": offset, "width": width}
-    field = RegField(name, offset, width)
+
+    opt_dict = {}
+    for opt in bs_elem.select(":scope > details > data.value_option"):
+        opt_name = opt.text.strip()
+        value = int(opt["value"])
+        assert opt_name not in opt_dict
+        opt_dict[opt_name] = value
+
+    opt_values = []
+    for opt_name, value in sorted(opt_dict.items(), key=lambda it: it[1]):
+        opt_values.append(RegFieldOptValue(opt_name, value))
+
+    field = RegField(name, offset, width, opt_values)
     return name, field
 
 def parse_register(bs_elem):
