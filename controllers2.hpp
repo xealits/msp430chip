@@ -61,10 +61,10 @@ namespace controller = controllers::MSP430G2553;
 
 //! \brief red LED
 // TODO: figure out how to do it with explicit types and compile-time checks
-constexpr unsigned LED1 = 0; // controllers::MSP430G2553::Port1::PIN0;
+constexpr unsigned LED1 = controllers::MSP430G2553::Port1::p_out::check_bit(0);
 constexpr unsigned LED_RED = LED1;
 //! \brief green LED
-constexpr unsigned LED2 = 6; // controllers::MSP430G2553::Port1::PIN6;
+constexpr unsigned LED2 = controllers::MSP430G2553::Port1::p_out::check_bit(6);
 constexpr unsigned LED_GREEN = LED2;
 };  // namespace MSP_EXP430G2
 };  // namespace launchpad_boards

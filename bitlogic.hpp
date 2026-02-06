@@ -120,6 +120,12 @@ struct Register {
 
   constexpr static inline reg_t read(void) { return reg; }
 
+  constexpr static inline unsigned check_bit(unsigned bit_n) {
+    static_assert((bit_n) < sizeof(reg_t) * 8,
+                "The requested bit does not fit in the register");
+    return bit_n;
+  }
+
   template <unsigned... bits>
   constexpr static void set(void) {
     reg = regMask<reg_t, bits...>();
