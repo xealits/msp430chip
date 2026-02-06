@@ -8,6 +8,7 @@ namespace controllers {
 namespace MSP430G2553 {
 #if defined(__MSP430G2553__)
 
+using bitlogic::DevPack;
 using regmaps::CaptureCompareBlockTemplate;
 using regmaps::CaptureCompareBlockParams;
 

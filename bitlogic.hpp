@@ -153,6 +153,41 @@ struct Register {
 };
 
 
+/** \defgroup DevPacks Indexed Packs of Templated Device Types
+ */
+
+/// @ingroup DevPacks
+/// @brief Main template for indexed pack of DevTemplate instantiations made from RegRefTs parameters
+template <unsigned dev_i, template <typename> class DevTemplate, typename... RegRefTs>
+struct IndexedDevPack;
+
+/// @ingroup DevPacks
+/// @brief Main specialization for the recursive template.
+template <unsigned dev_i, template <typename> class DevTemplate, typename FirstRef, typename... RestRefs>
+struct IndexedDevPack<dev_i, DevTemplate, FirstRef, RestRefs...> {
+    static_assert(dev_i > 0, "Index out of bounds");
+    struct Dev : public IndexedDevPack<dev_i, DevTemplate, RestRefs...>::Dev {};
+};
+
+/// @ingroup DevPacks
+/// @brief Specializaiton for the final step in the recursion.
+template <template <typename> class DevTemplate, typename FirstRef, typename... RestRefs>
+struct IndexedDevPack<0, DevTemplate, FirstRef, RestRefs...> {
+    struct Dev : public DevTemplate<FirstRef> {};
+};
+
+/// @ingroup DevPacks
+/// @brief Device pack: a tample to access an indexed pack.
+template <template <typename> class DevTemplate, typename... RegRefTs>
+struct DevPack {
+    template<unsigned dev_i>
+    struct DevByIndex : public IndexedDevPack<dev_i, DevTemplate, RegRefTs...>::Dev {};
+};
+
+
+/// Helper functions to work with registers and fields, which might not be needed.
+
+/// Not sure these are needed either.
 enum LOGIC_LEVELS { HIGH, LOW };
 
 // TODO: check the bit shifting edge cases
@@ -236,41 +271,6 @@ constexpr inline RegT maskRegField(RegT new_val) {
   // instead of setting it to some ref
   return reg_val;
 }
-
-/** struct is just a handy way to bundle a couple functions that act on the same
- * refreference I could just use namespace, but I could not template it.
- *
- *  But it looks like Ti compiler cl430 does not inline this stuff well.
- */
-template <typename RegT, RegT& t_reg, unsigned t_offset, unsigned t_n_bits>
-struct BitFieldSignature {
-  // static const char* s_name;
-  // static const BitFieldInfo<t_offset, t_n_bits> info;
-  constexpr static inline RegT get(void) {
-    return getRegField<t_offset, t_n_bits>(t_reg);
-  }
-  // static inline void set(RegT val) {return setRegField<t_offset,
-  // t_n_bits>(t_reg, val);}
-  //  clang compiles it, but Ti compiler cl430 cannot:
-  //  "../msp430_cpp/reg_funcs.hpp", line 122: error #306: no instance of
-  //  function template "BitLogic::setRegField" matches the argument list
-  //     argument types are: (volatile unsigned int, volatile unsigned int)
-  //   detected during instantiation of "void BitLogic::BitFieldSignature<RegT,
-  //   t_reg, t_offset, t_n_bits>::set(RegT) [with RegT=base_type<volatile
-  //   unsigned int>, t_reg=TA0CCTL0, t_offset=4U, t_n_bits=1U]" at line 142 of
-  //   "../msp430g2xx2_1_vlo.cpp"
-  //  like this should be easier:
-  constexpr static inline void set(RegT val) {
-    t_reg = maskRegField<t_offset, t_n_bits>(val);
-  }
-
-  constexpr static inline RegT mask(RegT val) {
-    return maskRegField<t_offset, t_n_bits>(val);
-  }
-  // static BitFieldInfo info(void) {return std::make_tuple(t_offset,
-  // t_n_bits);}; static BitFieldInfo info(void) {return {t_offset, t_n_bits,
-  // s_name};};
-};
 
 template <typename RegT, RegT& t_reg, unsigned field_offset,
           unsigned field_width>
