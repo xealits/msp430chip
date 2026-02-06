@@ -31,15 +31,20 @@ def find_topmost(soup, tag, class_ = None):
 
 reg_field_template = "using {name} = BitField<decltype({reg_ref}), {reg_ref}, {offset}, {width}>;"
 reg_field_options_template = "constexpr static typename {name}::OPT{opts};"
+
 reg_template = "struct {name} : public Register<decltype({reg_ref}), {reg_ref}> {body};"
+
 device_template = """
 template<{reg_declarations}>
 struct {name} {{
   {name}() = delete;
 
-{reg_definitions}
+{device_defs}
 }};
 """
+subdev_template = """
+template<unsigned dev_i>
+using {devname} = typename {dev_ref_t}::template DevByIndex<dev_i>;"""
 
 @dataclass
 class RegFieldOptValue:
@@ -87,10 +92,17 @@ class Register:
         return indent(contents, "  "*indentation)
 
 # TODO: there are 2 types of devices: unique and templates
+# unique is just a bunch of registers that are logically connected
+# if such a case happens, it could be useful to separate them
+# into an anonymous struct in Cpp
+# templates cover all cases when there are multiple identical devices
+# that are accessed by a template <index> parameter
 @dataclass
 class Device:
     name: str
+    toplevel: bool = True
     registers: dict = field(default_factory=dict)
+    subdev_names: list = field(default_factory=list)
 
     def to_cpp(self, indentation=0):
         reg_decls = []
@@ -107,7 +119,22 @@ class Device:
         reg_decls = f",\n{space}".join(reg_decls)
         reg_defs = "\n\n".join(reg_defs)
 
-        contents = device_template.format(name=self.name, reg_declarations=reg_decls, reg_definitions=reg_defs)
+        all_decls = reg_decls
+        all_defs = reg_defs
+
+        dev_decls = []
+        dev_defs = []
+        for devname in self.subdev_names:
+            dev_ref_t = devname + "_t"
+            dev_decls.append(f"typename {dev_ref_t}")
+            dev_def = subdev_template.format(devname=devname, dev_ref_t=dev_ref_t)
+            dev_defs.append(indent(dev_def, "  "))
+
+        if dev_decls:
+            all_decls += f",\n{space}" + f",\n{space}".join(dev_decls)
+        all_defs += "\n" + "\n\n".join(dev_defs)
+
+        contents = device_template.format(name=self.name, reg_declarations=all_decls, device_defs=all_defs)
         return indent(contents, "  "*indentation)
 
 def parse_field(bs_elem):
@@ -152,13 +179,14 @@ def parse_register(bs_elem):
 
     return name, reg
 
-def parse_device_template(bs_elem, known_templates={}):
+def parse_device_template(bs_elem, known_templates={}, toplevel=False):
     dev_name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
     if dev_name in device_templates:
         raise Exception(f"Device template {dev_name} already exists")
 
     dev_registers = {}
-    templ = Device(dev_name, dev_registers)
+    dev_subdev_names = []
+    templ = Device(dev_name, toplevel, dev_registers, dev_subdev_names)
     known_templates[dev_name] = templ
 
     substr = bs_elem.select_one(":scope details")
@@ -176,21 +204,25 @@ def parse_device_template(bs_elem, known_templates={}):
     # "templates" are sub-devices that can appear in variable number
     subdev_templates = substr.select(":scope li.device_template:not(:scope details li.device_template)")
     for subdev in subdev_templates:
-        parse_device_template(subdev, known_templates)
+        subdev_name = parse_device_template(subdev, known_templates)
+        dev_subdev_names.append(subdev_name)
+
+    return dev_name
 
 device_templates = {}
 
 devices = find_topmost(soup, "div", "device_template")
 print("Number of top-level devices:", len(devices))
 
-# get just the registers
+# the top level devices are divs
+# the subdevices are the usual li inside the divs
 for dev in devices:
-    parse_device_template(dev, device_templates)
+    parse_device_template(dev, device_templates, True)
 
 pprint(device_templates)
 
-for reg in device_templates["TimerA"].registers.values():
-    reg_ref = reg.name + "_t"
-    print(reg.to_cpp(reg_ref))
+#for reg in device_templates["TimerA"].registers.values():
+#    reg_ref = reg.name + "_t"
+#    print(reg.to_cpp(reg_ref))
 
 print(device_templates["TimerA"].to_cpp())
