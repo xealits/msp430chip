@@ -290,11 +290,73 @@ source_template = """
 #include "devpacks.hpp"
 #include "bitlogic.hpp"
 
-namespace devices {{
+namespace regmaps {{
 using bitlogic::BitField;
 using bitlogic::Register;
 
 {sources}
+
+// let's just smash it in here
+
+//! \brief basic digital IO port
+template <volatile unsigned char& p_in, volatile unsigned char& p_out,
+          volatile unsigned char& p_dir, volatile unsigned char& p_sel,
+          volatile unsigned char& p_sel2, volatile unsigned char& p_en>
+struct Port8bit {{
+  Port8bit() = delete;
+  //
+  using reg_type = std::decay_t<decltype(p_in)>;
+
+  // template<reg_type directions>
+  // constexpr static void setDirecionOutputs(void) {{
+  // p_dir = directions;
+  //}}
+  template <unsigned... bits>
+  constexpr static void setDirecionOutputs(void) {{
+    p_dir = bitlogic::regMask<reg_type, bits...>();
+  }}
+
+  template <unsigned... bits>
+  constexpr static void toggleOutput(void) {{
+    p_out ^= bitlogic::regMask<reg_type, bits...>();
+  }}
+
+  template <unsigned... bits>
+  constexpr static void setOutput(void) {{
+    p_out |= bitlogic::regMask<reg_type, bits...>();
+  }}
+
+  constexpr static void setOutput(reg_type value) {{ p_out = value; }}
+
+  template <unsigned... bits>
+  constexpr static void unsetOutput(void) {{
+    p_out &= ~bitlogic::regMask<reg_type, bits...>();
+  }}
+
+  constexpr static reg_type readIn(void) {{ return p_in; }}
+
+  enum PINS {{
+    PIN0 = 0,
+    PIN1 = 1,
+    PIN2 = 2,
+    PIN3 = 3,
+    PIN4 = 4,
+    PIN5 = 5,
+    PIN6 = 6,
+    PIN7 = 7
+  }};
+}};
+
+//! \brief digital IO port with external interrupt
+template <volatile unsigned char& p_in, volatile unsigned char& p_out,
+          volatile unsigned char& p_dir, volatile unsigned char& p_ifg,
+          volatile unsigned char& p_ies, volatile unsigned char& p_ie,
+          volatile unsigned char& p_sel, volatile unsigned char& p_sel2,
+          volatile unsigned char& p_en>
+struct Port8bitI : public Port8bit<p_in, p_out, p_dir, p_sel, p_sel2, p_en> {{
+  Port8bitI() = delete;
+}};
+
 }};
 """
 
