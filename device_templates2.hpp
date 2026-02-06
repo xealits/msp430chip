@@ -83,5 +83,36 @@ struct TimerA {
   using CaptureCompareBlock = typename CaptureCompareBlock_t::template DevByIndex<dev_i>;
 };
 
+// let's just smash it in here
+
+//! \brief basic digital IO port
+template <volatile unsigned char& p_in, volatile unsigned char& p_out,
+          volatile unsigned char& p_dir, volatile unsigned char& p_sel,
+          volatile unsigned char& p_sel2, volatile unsigned char& p_en>
+struct Port8bit : public PortIO<std::decay_t<decltype(p_in)>> {
+  Port8bit() = delete;
+  //
+  using reg_type = std::decay_t<decltype(p_in)>;
+  enum PINS {
+    PIN0 = 0,
+    PIN1 = 1,
+    PIN2 = 2,
+    PIN3 = 3,
+    PIN4 = 4,
+    PIN5 = 5,
+    PIN6 = 6,
+    PIN7 = 7
+  };
+};
+
+//! \brief digital IO port with external interrupt
+template <volatile unsigned char& p_in, volatile unsigned char& p_out,
+          volatile unsigned char& p_dir, volatile unsigned char& p_ifg,
+          volatile unsigned char& p_ies, volatile unsigned char& p_ie,
+          volatile unsigned char& p_sel, volatile unsigned char& p_sel2,
+          volatile unsigned char& p_en>
+struct Port8bitI : public Port8bit<p_in, p_out, p_dir, p_sel, p_sel2, p_en> {
+  Port8bitI() = delete;
+};
 };
 

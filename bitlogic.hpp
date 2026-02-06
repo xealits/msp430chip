@@ -98,6 +98,37 @@ struct Register {
   constexpr static inline reg_t read(void) { return reg; }
 };
 
+template<typename reg_type>
+struct PortIO {
+  // template<reg_type directions>
+  // constexpr static void setDirecionOutputs(void) {
+  // p_dir = directions;
+  //}
+  template <unsigned... bits>
+  constexpr static void setDirecionOutputs(void) {
+    p_dir = bitlogic::regMask<reg_type, bits...>();
+  }
+
+  template <unsigned... bits>
+  constexpr static void toggleOutput(void) {
+    p_out ^= bitlogic::regMask<reg_type, bits...>();
+  }
+
+  template <unsigned... bits>
+  constexpr static void setOutput(void) {
+    p_out |= bitlogic::regMask<reg_type, bits...>();
+  }
+
+  constexpr static void setOutput(reg_type value) { p_out = value; }
+
+  template <unsigned... bits>
+  constexpr static void unsetOutput(void) {
+    p_out &= ~bitlogic::regMask<reg_type, bits...>();
+  }
+
+  constexpr static reg_type readIn(void) { return p_in; }
+};
+
 /*
 /// \brief Dynamic Register description that can be used in static constexprs of types.
 template<typename RegType>
