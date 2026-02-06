@@ -11,6 +11,29 @@ constexpr RegType calcMask(void) {
   return width < (sizeof(RegType) * 8) ? (0b1 << width) - 1 : ~RegType{0};
 }
 
+/** \brief Make a bit mask in an unsigned of type RegT
+ *
+ * Use ~regMask<>() to make a mask of zeros.
+ */
+template <typename RegT, RegT mask, unsigned bit_n>
+inline constexpr RegT regMaskUnfold() {
+  static_assert((bit_n) < sizeof(RegT) * 8,
+                "The requested bit does not fit in the register");
+  return mask | (0x1 << bit_n);
+}
+
+template <typename RegT, RegT mask, unsigned bit_n, unsigned... rest_bit_ns>
+inline constexpr RegT regMaskUnfold() {
+  static_assert((bit_n) < sizeof(RegT) * 8,
+                "The requested bit does not fit in the register");
+  return regMaskUnfold<RegT, mask | (0x1 << bit_n), rest_bit_ns...>();
+}
+
+template <typename RegT, unsigned bit_n, unsigned... rest_bit_ns>
+inline constexpr base_type<RegT> regMask() {
+  return regMaskUnfold<base_type<RegT>, 0x0, bit_n, rest_bit_ns...>();
+}
+
 /// \brief Value options for the bit field
 /// The struct is supposed to be used only as a constexpr.
 /// The value is not a tamplate parameter,
@@ -96,6 +119,30 @@ struct Register {
   constexpr static inline void write(reg_t new_val) { reg = new_val; }
 
   constexpr static inline reg_t read(void) { return reg; }
+
+  template <unsigned... bits>
+  constexpr static void set(void) {
+    reg = regMask<reg_t, bits...>();
+  }
+
+  constexpr static void set(reg_t value) {
+    reg = value;
+  }
+
+  template <unsigned... bits>
+  constexpr static void set_or(void) {
+    reg |= bitlogic::regMask<reg_t, bits...>();
+  }
+
+  template <unsigned... bits>
+  constexpr static void toggle(void) {
+    reg ^= regMask<reg_t, bits...>();
+  }
+
+  template <unsigned... bits>
+  constexpr static void unset(void) {
+    reg &= ~bitlogic::regMask<reg_t, bits...>();
+  }
 };
 
 /*
@@ -165,29 +212,6 @@ struct BitField2 {
 };
 */
 
-
-/** \brief Make a bit mask in an unsigned of type RegT
- *
- * Use ~regMask<>() to make a mask of zeros.
- */
-template <typename RegT, RegT mask, unsigned bit_n>
-inline constexpr RegT regMaskUnfold() {
-  static_assert((bit_n) < sizeof(RegT) * 8,
-                "The requested bit does not fit in the register");
-  return mask | (0x1 << bit_n);
-}
-
-template <typename RegT, RegT mask, unsigned bit_n, unsigned... rest_bit_ns>
-inline constexpr RegT regMaskUnfold() {
-  static_assert((bit_n) < sizeof(RegT) * 8,
-                "The requested bit does not fit in the register");
-  return regMaskUnfold<RegT, mask | (0x1 << bit_n), rest_bit_ns...>();
-}
-
-template <typename RegT, unsigned bit_n, unsigned... rest_bit_ns>
-inline constexpr base_type<RegT> regMask() {
-  return regMaskUnfold<base_type<RegT>, 0x0, bit_n, rest_bit_ns...>();
-}
 
 enum LOGIC_LEVELS { HIGH, LOW };
 

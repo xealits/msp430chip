@@ -63,7 +63,10 @@ struct {name}Template<{name}Params<{dev_refs_used}>> {{
 }};
 """
 
-known_reg_types_cpp = {16: "unsigned int", 32: "unsigned long"}
+known_reg_types_cpp = {
+    8: "unsigned char",
+    16: "unsigned int",
+    32: "unsigned long"}
 
 @dataclass
 class RegFieldOptValue:
@@ -203,7 +206,12 @@ def parse_field(bs_elem):
 
 def parse_register(bs_elem):
     name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
-    width = 16  # TODO: add to data-sheet
+    width = bs_elem.select_one(":scope span.width:not(:scope details span.width)")
+    if width:
+        width = int(width.text.strip())
+    else:
+        width = 16  # TODO: add to data-sheet
+
     #cpp_type = {32: "uint32_t"}[width]
     #reg_info = {"width": width, "cpp_type": cpp_type}
 
@@ -295,7 +303,10 @@ using bitlogic::BitField;
 using bitlogic::Register;
 
 {sources}
+}};
+"""
 
+"""
 // let's just smash it in here
 
 //! \brief basic digital IO port

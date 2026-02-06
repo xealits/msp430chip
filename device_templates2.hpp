@@ -5,7 +5,7 @@
 #include "devpacks.hpp"
 #include "bitlogic.hpp"
 
-namespace devices {
+namespace regmaps {
 using bitlogic::BitField;
 using bitlogic::Register;
 
@@ -83,65 +83,58 @@ struct TimerA {
   using CaptureCompareBlock = typename CaptureCompareBlock_t::template DevByIndex<dev_i>;
 };
 
-// let's just smash it in here
+template<volatile unsigned char& p_in_t,
+         volatile unsigned char& p_out_t,
+         volatile unsigned char& p_dir_t,
+         volatile unsigned char& p_sel_t,
+         volatile unsigned char& p_sel2_t,
+         volatile unsigned char& p_en_t>
+struct PortIO8bit {
+  PortIO8bit() = delete;
 
-//! \brief basic digital IO port
-template <volatile unsigned char& p_in, volatile unsigned char& p_out,
-          volatile unsigned char& p_dir, volatile unsigned char& p_sel,
-          volatile unsigned char& p_sel2, volatile unsigned char& p_en>
-struct Port8bit {
-  Port8bit() = delete;
-  //
-  using reg_type = std::decay_t<decltype(p_in)>;
+  struct p_in : public Register<decltype(p_in_t), p_in_t> {};
 
-  // template<reg_type directions>
-  // constexpr static void setDirecionOutputs(void) {
-  // p_dir = directions;
-  //}
-  template <unsigned... bits>
-  constexpr static void setDirecionOutputs(void) {
-    p_dir = bitlogic::regMask<reg_type, bits...>();
-  }
+  struct p_out : public Register<decltype(p_out_t), p_out_t> {};
 
-  template <unsigned... bits>
-  constexpr static void toggleOutput(void) {
-    p_out ^= bitlogic::regMask<reg_type, bits...>();
-  }
+  struct p_dir : public Register<decltype(p_dir_t), p_dir_t> {};
 
-  template <unsigned... bits>
-  constexpr static void setOutput(void) {
-    p_out |= bitlogic::regMask<reg_type, bits...>();
-  }
+  struct p_sel : public Register<decltype(p_sel_t), p_sel_t> {};
 
-  constexpr static void setOutput(reg_type value) { p_out = value; }
+  struct p_sel2 : public Register<decltype(p_sel2_t), p_sel2_t> {};
 
-  template <unsigned... bits>
-  constexpr static void unsetOutput(void) {
-    p_out &= ~bitlogic::regMask<reg_type, bits...>();
-  }
-
-  constexpr static reg_type readIn(void) { return p_in; }
-
-  enum PINS {
-    PIN0 = 0,
-    PIN1 = 1,
-    PIN2 = 2,
-    PIN3 = 3,
-    PIN4 = 4,
-    PIN5 = 5,
-    PIN6 = 6,
-    PIN7 = 7
-  };
+  struct p_en : public Register<decltype(p_en_t), p_en_t> {};
 };
 
-//! \brief digital IO port with external interrupt
-template <volatile unsigned char& p_in, volatile unsigned char& p_out,
-          volatile unsigned char& p_dir, volatile unsigned char& p_ifg,
-          volatile unsigned char& p_ies, volatile unsigned char& p_ie,
-          volatile unsigned char& p_sel, volatile unsigned char& p_sel2,
-          volatile unsigned char& p_en>
-struct Port8bitI : public Port8bit<p_in, p_out, p_dir, p_sel, p_sel2, p_en> {
-  Port8bitI() = delete;
+template<volatile unsigned char& p_in_t,
+         volatile unsigned char& p_out_t,
+         volatile unsigned char& p_dir_t,
+         volatile unsigned char& p_sel_t,
+         volatile unsigned char& p_sel2_t,
+         volatile unsigned char& p_en_t,
+         volatile unsigned char& p_ifg_t,
+         volatile unsigned char& p_ies_t,
+         volatile unsigned char& p_ie_t>
+struct PortIO8bitI {
+  PortIO8bitI() = delete;
+
+  struct p_in : public Register<decltype(p_in_t), p_in_t> {};
+
+  struct p_out : public Register<decltype(p_out_t), p_out_t> {};
+
+  struct p_dir : public Register<decltype(p_dir_t), p_dir_t> {};
+
+  struct p_sel : public Register<decltype(p_sel_t), p_sel_t> {};
+
+  struct p_sel2 : public Register<decltype(p_sel2_t), p_sel2_t> {};
+
+  struct p_en : public Register<decltype(p_en_t), p_en_t> {};
+
+  struct p_ifg : public Register<decltype(p_ifg_t), p_ifg_t> {};
+
+  struct p_ies : public Register<decltype(p_ies_t), p_ies_t> {};
+
+  struct p_ie : public Register<decltype(p_ie_t), p_ie_t> {};
 };
+
 };
 

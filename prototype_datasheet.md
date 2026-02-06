@@ -157,3 +157,55 @@ Register type name: <dfn>InterruptVector</dfn>
 </ul>
 </details>
 </div>
+
+One more top-level device, an 8-bit IO port:
+
+<div class="device_template" id="PortIO8bit">
+Device template name: <dfn class="cpp_name">PortIO8bit</dfn>
+
+IO port control.
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+<li class="register" id="PortIO8bit.p_in"> Name: <dfn>p_in</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bit.p_out"> Name: <dfn>p_out</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bit.p_dir"> Name: <dfn>p_dir</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bit.p_sel"> Name: <dfn>p_sel</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bit.p_sel2"> Name: <dfn>p_sel2</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bit.p_en"> Name: <dfn>p_en</dfn>. Width: <span class="width">8</span>. </li>
+</ul>
+</details>
+</div>
+
+Same 8-bit IO port with interrupts control:
+
+<div class="device_template" id="PortIO8bitI">
+Device template name: <dfn class="cpp_name">PortIO8bitI</dfn>
+
+IO port control with interrupts.
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+<li class="register" id="PortIO8bitI.p_in"> Name: <dfn>p_in</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bitI.p_out"> Name: <dfn>p_out</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bitI.p_dir"> Name: <dfn>p_dir</dfn>. Width: <span class="width">8</span>. </li>
+
+<li class="register" id="PortIO8bitI.p_sel"> Name: <dfn>p_sel</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bitI.p_sel2"> Name: <dfn>p_sel2</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bitI.p_en"> Name: <dfn>p_en</dfn>. Width: <span class="width">8</span>. </li>
+
+<li class="register" id="PortIO8bitI.p_ifg"> Name: <dfn>p_ifg</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bitI.p_ies"> Name: <dfn>p_ies</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bitI.p_ie"> Name: <dfn>p_ie</dfn>. Width: <span class="width">8</span>. </li>
+</ul>
+</details>
+</div>
+
