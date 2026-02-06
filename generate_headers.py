@@ -29,6 +29,7 @@ def find_topmost(soup, tag, class_ = None):
 
     return found_els
 
+templ_space = " " * len("template<")
 reg_field_template = "using {name} = BitField<decltype({reg_ref}), {reg_ref}, {offset}, {width}>;"
 reg_field_options_template = "constexpr static typename {name}::OPT{opts};"
 
@@ -49,16 +50,16 @@ using {devname} = typename {dev_ref_t}::template DevByIndex<dev_i>;"""
 
 subdev_decl_template = """
 template<{dev_refs}>
-struct {name}Params {};
+struct {name}Params {{}};
 
-template<typename>
+template<typename {name}Params_t>
 struct {name}Template;
 
 template<{dev_refs}>
 struct {name}Template<{name}Params<{dev_refs}>> {{
   {name}Template() = delete;
 
-{device_defs}
+{dev_defs}
 }};
 """
 
@@ -119,7 +120,7 @@ class Device:
     registers: dict = field(default_factory=dict)
     subdev_names: list = field(default_factory=list)
 
-    def to_cpp(self, indentation=0):
+    def _reg_decls_n_defs(self, indentation=0):
         reg_decls = []
         reg_defs = []
         for reg in self.registers.values():
@@ -130,10 +131,13 @@ class Device:
             reg_decls.append(reg_decl)
             reg_defs.append(reg.to_cpp(reg_ref, indentation+1))
 
-        space = " " * len("template<")
-        reg_decls = f",\n{space}".join(reg_decls)
+        reg_decls = f",\n{templ_space}".join(reg_decls)
         reg_defs = "\n\n".join(reg_defs)
 
+        return reg_decls, reg_defs
+
+    def to_cpp(self, indentation=0):
+        reg_decls, reg_defs = self._reg_decls_n_defs()
         all_decls = reg_decls
         all_defs = reg_defs
 
@@ -146,20 +150,30 @@ class Device:
             dev_defs.append(indent(dev_def, "  "))
 
         if dev_decls:
-            all_decls += f",\n{space}" + f",\n{space}".join(dev_decls)
+            all_decls += f",\n{templ_space}" + f",\n{templ_space}".join(dev_decls)
             all_defs += "\n" + "\n\n".join(dev_defs)
 
         contents = device_template.format(name=self.name, reg_declarations=all_decls, device_defs=all_defs)
         return indent(contents, "  "*indentation)
 
 @dataclass
-class SubDevice:
+class SubDevice(Device):
     name: str
     registers: dict = field(default_factory=dict)
     subdev_names: list = field(default_factory=list)
 
     def to_cpp(self, indentation=0):
-        return self.name
+        #reg_params = []
+        #for reg in self.registers.values():
+        #    param = f"{reg.cpp_type}& {reg.name}_t"
+        #    reg_params.append(param)
+        reg_decls, reg_defs = self._reg_decls_n_defs(indentation)
+
+        dev_refs = reg_decls
+        dev_defs = reg_defs
+
+        cpp = subdev_decl_template.format(name=self.name, dev_refs=dev_refs, dev_defs=dev_defs)
+        return cpp
 
 def parse_field(bs_elem):
     name = bs_elem.select_one(":scope dfn").text.strip()

@@ -22,18 +22,8 @@ Let's try on the TimerA and its Capture/Compare blocks.
 
 # TimerA
 
-First, let's try `this`{.foo} feature in Pandoc?
-
-[The whole paragraph as a span?]{.foo}
-
-And let's try it on lists?
-
-* []{.foo}Here is a top item -- no way to attach the class to the item.
-  - And a [sub-item]{.bar}.
-
-* Another top item.
-
-Yep, it's BS.
+Any text with notes, links, code, all normal markdown.
+And also descriptions of devices.
 
 <div class="device_template" id="TimerA">
 Device template name: <dfn class="cpp_name">TimerA</dfn>
