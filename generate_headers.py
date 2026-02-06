@@ -87,9 +87,13 @@ class RegField:
     offset: int
     width: int
     option_values: list = field(default_factory=list)
+    comment: str = ""
 
     def to_cpp(self, reg_ref, indentation=0):
-        contents = reg_field_template.format(name=self.name, reg_ref=reg_ref, offset=self.offset, width=self.width)
+        contents = ""
+        if self.comment:
+            contents += f"/// {self.comment}\n"
+        contents += reg_field_template.format(name=self.name, reg_ref=reg_ref, offset=self.offset, width=self.width)
 
         if self.option_values:
             opts = "\n  " + ",\n  ".join(opt.to_cpp() for opt in self.option_values)
@@ -197,6 +201,9 @@ def parse_field(bs_elem):
     offset = int(bs_elem.select_one(":scope span.offset").text.strip())
     width = int(bs_elem.select_one(":scope span.width").text.strip())
     #info = {"offset": offset, "width": width}
+    comment = bs_elem.select_one(":scope span.comment")
+    if comment is not None:
+        comment = comment.text.strip()
 
     opt_dict = {}
     # the old direct options with no comments:
@@ -221,7 +228,7 @@ def parse_field(bs_elem):
     for opt_name, (value, comment) in sorted(opt_dict.items(), key=lambda it: it[1]):
         opt_values.append(RegFieldOptValue(opt_name, value, comment))
 
-    field = RegField(name, offset, width, opt_values)
+    field = RegField(name, offset, width, opt_values, comment)
     return name, field
 
 def parse_register(bs_elem):

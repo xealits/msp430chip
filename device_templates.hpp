@@ -138,7 +138,8 @@ struct PortIO8bitI {
 template<volatile unsigned char& DataTransferControl0_t,
          volatile unsigned char& DataTransferControl1_t,
          volatile unsigned char& AnalogEnable0_t,
-         volatile unsigned int& Control0_t>
+         volatile unsigned int& Control0_t,
+         volatile unsigned int& Control1_t>
 struct ADC10 {
   ADC10() = delete;
 
@@ -170,12 +171,14 @@ struct ADC10 {
     using ref_burst_mode = BitField<decltype(Control0_t), Control0_t, 8, 1>;
     using enable_output_of_ref = BitField<decltype(Control0_t), Control0_t, 9, 1>;
     using sampling_rate = BitField<decltype(Control0_t), Control0_t, 10, 1>;
+    /// 64 x ADC10 clocks
     using sample_hold_select = BitField<decltype(Control0_t), Control0_t, 11, 2>;
     constexpr static typename sample_hold_select::OPT
-      SH_0{0} /** 4 x ADC10 clocks */,
-      SH_1{1} /** 8 x ADC10 clocks */,
-      SH_2{2} /** 16 x ADC10 clocks */,
-      SH_3{3} /** 64 x ADC10 clocks */;
+      SH_x4{0} /** 4 x ADC10 clocks */,
+      SH_x8{1} /** 8 x ADC10 clocks */,
+      SH_x16{2} /** 16 x ADC10 clocks */,
+      SH_x64{3} /** 64 x ADC10 clocks */;
+    /// VR+ = VEREF+ and VR- = VREF-/VEREF-
     using reference_select = BitField<decltype(Control0_t), Control0_t, 13, 3>;
     constexpr static typename reference_select::OPT
       REF_0{0} /** VR+ = AVCC and VR- = AVSS */,
@@ -186,6 +189,59 @@ struct ADC10 {
       REF_5{5} /** VR+ = VREF+ and VR- = VREF-/VEREF- */,
       REF_6{6} /** VR+ = VEREF+ and VR- = VREF-/VEREF- */,
       REF_7{7} /** VR+ = VEREF+ and VR- = VREF-/VEREF- */;
+  };
+
+  struct Control1 : public Register<decltype(Control1_t), Control1_t> {
+    using busy = BitField<decltype(Control1_t), Control1_t, 0, 1>;
+    using conversion_sequence = BitField<decltype(Control1_t), Control1_t, 1, 2>;
+    constexpr static typename conversion_sequence::OPT
+      SingleChannelSingleConversion{0},
+      SequenceOfChannels{1},
+      RepeatSingleChannel{2},
+      RepeatSequenceOfChannels{3};
+    using clock_source = BitField<decltype(Control1_t), Control1_t, 3, 2>;
+    constexpr static typename clock_source::OPT
+      ADC10OSC{0},
+      ACLK{1},
+      MCLK{2},
+      SMCLK{3};
+    using clock_divider = BitField<decltype(Control1_t), Control1_t, 5, 3>;
+    constexpr static typename clock_divider::OPT
+      DIV_0{0},
+      DIV_1{1},
+      DIV_2{2},
+      DIV_3{3},
+      DIV_4{4},
+      DIV_5{5},
+      DIV_6{6},
+      DIV_7{7};
+    using invert_sample_hold = BitField<decltype(Control1_t), Control1_t, 8, 1>;
+    /// 0 = binary, 1 = 2's complement
+    using data_format = BitField<decltype(Control1_t), Control1_t, 9, 1>;
+    using sample_hold_source = BitField<decltype(Control1_t), Control1_t, 10, 2>;
+    constexpr static typename sample_hold_source::OPT
+      SHS_ADC10OSC{0},
+      TA3_OUT1{1},
+      TA3_OUT0{2},
+      TA3_OUT2{3};
+    using input_channel = BitField<decltype(Control1_t), Control1_t, 12, 4>;
+    constexpr static typename input_channel::OPT
+      CH_0{0},
+      CH_1{1},
+      CH_2{2},
+      CH_3{3},
+      CH_4{4},
+      CH_5{5},
+      CH_6{6},
+      CH_7{7},
+      CH_8{8},
+      CH_9{9},
+      CH_10{10},
+      CH_11{11},
+      CH_12{12},
+      CH_13{13},
+      CH_14{14},
+      CH_15{15};
   };
 };
 

@@ -285,10 +285,10 @@ Fields.
 <li class="field"> <dfn>sample_hold_select</dfn> <span class="offset">11</span> <span class="width">2</span>
 <details>
   <summary>Value options.</summary>
-  <span class="value_option"><data value="0">SH_0</data> <span class="comment">4 x ADC10 clocks</span></span>
-  <span class="value_option"><data value="1">SH_1</data> <span class="comment">8 x ADC10 clocks</span></span>
-  <span class="value_option"><data value="2">SH_2</data> <span class="comment">16 x ADC10 clocks</span></span>
-  <span class="value_option"><data value="3">SH_3</data> <span class="comment">64 x ADC10 clocks</span></span>
+  <span class="value_option"><data value="0">SH_x4</data> <span class="comment">4 x ADC10 clocks</span></span>
+  <span class="value_option"><data value="1">SH_x8</data> <span class="comment">8 x ADC10 clocks</span></span>
+  <span class="value_option"><data value="2">SH_x16</data> <span class="comment">16 x ADC10 clocks</span></span>
+  <span class="value_option"><data value="3">SH_x64</data> <span class="comment">64 x ADC10 clocks</span></span>
 </details>
 </li>
 
@@ -303,6 +303,91 @@ Fields.
   <span class="value_option"><data value="5">REF_5</data> <span class="comment">VR+ = VREF+ and VR- = VREF-/VEREF-</span></span>
   <span class="value_option"><data value="6">REF_6</data> <span class="comment">VR+ = VEREF+ and VR- = VREF-/VEREF-</span></span>
   <span class="value_option"><data value="7">REF_7</data> <span class="comment">VR+ = VEREF+ and VR- = VREF-/VEREF-</span></span>
+</details>
+</li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="ADC10.Control1">
+Name: <dfn>Control1</dfn>. Width: <span class="width">16</span>.
+Selects for: conversion sequence, clock source, clock divider, etc.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>busy</dfn> <span class="offset">0</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>conversion_sequence</dfn> <span class="offset">1</span> <span class="width">2</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">SingleChannelSingleConversion</data> </span>
+  <span class="value_option"><data value="1">SequenceOfChannels</data> </span>
+  <span class="value_option"><data value="2">RepeatSingleChannel</data> </span>
+  <span class="value_option"><data value="3">RepeatSequenceOfChannels</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>clock_source</dfn> <span class="offset">3</span> <span class="width">2</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">ADC10OSC</data> </span>
+  <span class="value_option"><data value="1">ACLK</data> </span>
+  <span class="value_option"><data value="2">MCLK</data> </span>
+  <span class="value_option"><data value="3">SMCLK</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>clock_divider</dfn> <span class="offset">5</span> <span class="width">3</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DIV_0</data> </span>
+  <span class="value_option"><data value="1">DIV_1</data> </span>
+  <span class="value_option"><data value="2">DIV_2</data> </span>
+  <span class="value_option"><data value="3">DIV_3</data> </span>
+  <span class="value_option"><data value="4">DIV_4</data> </span>
+  <span class="value_option"><data value="5">DIV_5</data> </span>
+  <span class="value_option"><data value="6">DIV_6</data> </span>
+  <span class="value_option"><data value="7">DIV_7</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>invert_sample_hold</dfn> <span class="offset">8</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>data_format</dfn> <span class="offset">9</span> <span class="width">1</span>
+<span class="comment">0 = binary, 1 = 2's complement</span>
+</li>
+<li class="field"> <dfn>sample_hold_source</dfn> <span class="offset">10</span> <span class="width">2</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">SHS_ADC10OSC</data> </span>
+  <span class="value_option"><data value="1">TA3_OUT1</data> </span>
+  <span class="value_option"><data value="2">TA3_OUT0</data> </span>
+  <span class="value_option"><data value="3">TA3_OUT2</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>input_channel</dfn> <span class="offset">12</span> <span class="width">4</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">CH_0</data> </span>
+  <span class="value_option"><data value="1">CH_1</data> </span>
+  <span class="value_option"><data value="2">CH_2</data> </span>
+  <span class="value_option"><data value="3">CH_3</data> </span>
+  <span class="value_option"><data value="4">CH_4</data> </span>
+  <span class="value_option"><data value="5">CH_5</data> </span>
+  <span class="value_option"><data value="6">CH_6</data> </span>
+  <span class="value_option"><data value="7">CH_7</data> </span>
+
+  <span class="value_option"><data value="8">CH_8</data> </span>
+  <span class="value_option"><data value="9">CH_9</data> </span>
+  <span class="value_option"><data value="10">CH_10</data> </span>
+  <span class="value_option"><data value="11">CH_11</data> </span>
+  <span class="value_option"><data value="12">CH_12</data> </span>
+  <span class="value_option"><data value="13">CH_13</data> </span>
+  <span class="value_option"><data value="14">CH_14</data> </span>
+  <span class="value_option"><data value="15">CH_15</data> </span>
 </details>
 </li>
 
