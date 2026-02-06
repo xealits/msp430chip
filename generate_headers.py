@@ -42,9 +42,25 @@ struct {name} {{
 {device_defs}
 }};
 """
-subdev_template = """
+
+subdev_def_template = """
 template<unsigned dev_i>
 using {devname} = typename {dev_ref_t}::template DevByIndex<dev_i>;"""
+
+subdev_decl_template = """
+template<{dev_refs}>
+struct {name}Params {};
+
+template<typename>
+struct {name}Template;
+
+template<{dev_refs}>
+struct {name}Template<{name}Params<{dev_refs}>> {{
+  {name}Template() = delete;
+
+{device_defs}
+}};
+"""
 
 @dataclass
 class RegFieldOptValue:
@@ -100,7 +116,6 @@ class Register:
 @dataclass
 class Device:
     name: str
-    toplevel: bool = True
     registers: dict = field(default_factory=dict)
     subdev_names: list = field(default_factory=list)
 
@@ -127,15 +142,24 @@ class Device:
         for devname in self.subdev_names:
             dev_ref_t = devname + "_t"
             dev_decls.append(f"typename {dev_ref_t}")
-            dev_def = subdev_template.format(devname=devname, dev_ref_t=dev_ref_t)
+            dev_def = subdev_def_template.format(devname=devname, dev_ref_t=dev_ref_t)
             dev_defs.append(indent(dev_def, "  "))
 
         if dev_decls:
             all_decls += f",\n{space}" + f",\n{space}".join(dev_decls)
-        all_defs += "\n" + "\n\n".join(dev_defs)
+            all_defs += "\n" + "\n\n".join(dev_defs)
 
         contents = device_template.format(name=self.name, reg_declarations=all_decls, device_defs=all_defs)
         return indent(contents, "  "*indentation)
+
+@dataclass
+class SubDevice:
+    name: str
+    registers: dict = field(default_factory=dict)
+    subdev_names: list = field(default_factory=list)
+
+    def to_cpp(self, indentation=0):
+        return self.name
 
 def parse_field(bs_elem):
     name = bs_elem.select_one(":scope dfn").text.strip()
@@ -186,7 +210,10 @@ def parse_device_template(bs_elem, known_templates={}, toplevel=False):
 
     dev_registers = {}
     dev_subdev_names = []
-    templ = Device(dev_name, toplevel, dev_registers, dev_subdev_names)
+    if toplevel:
+        templ = Device(dev_name, dev_registers, dev_subdev_names)
+    else:
+        templ = SubDevice(dev_name, dev_registers, dev_subdev_names)
     known_templates[dev_name] = templ
 
     substr = bs_elem.select_one(":scope details")
@@ -225,4 +252,13 @@ pprint(device_templates)
 #    reg_ref = reg.name + "_t"
 #    print(reg.to_cpp(reg_ref))
 
-print(device_templates["TimerA"].to_cpp())
+devices_toplevel = ""
+devices_subdevices = ""
+for devname, dev in device_templates.items():
+    if isinstance(dev, SubDevice):
+        devices_subdevices += dev.to_cpp()
+    else:
+        devices_toplevel += dev.to_cpp()
+
+print(devices_subdevices)
+print(devices_toplevel)
