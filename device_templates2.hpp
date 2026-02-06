@@ -89,10 +89,39 @@ struct TimerA {
 template <volatile unsigned char& p_in, volatile unsigned char& p_out,
           volatile unsigned char& p_dir, volatile unsigned char& p_sel,
           volatile unsigned char& p_sel2, volatile unsigned char& p_en>
-struct Port8bit : public PortIO<std::decay_t<decltype(p_in)>> {
+struct Port8bit {
   Port8bit() = delete;
   //
   using reg_type = std::decay_t<decltype(p_in)>;
+
+  // template<reg_type directions>
+  // constexpr static void setDirecionOutputs(void) {
+  // p_dir = directions;
+  //}
+  template <unsigned... bits>
+  constexpr static void setDirecionOutputs(void) {
+    p_dir = bitlogic::regMask<reg_type, bits...>();
+  }
+
+  template <unsigned... bits>
+  constexpr static void toggleOutput(void) {
+    p_out ^= bitlogic::regMask<reg_type, bits...>();
+  }
+
+  template <unsigned... bits>
+  constexpr static void setOutput(void) {
+    p_out |= bitlogic::regMask<reg_type, bits...>();
+  }
+
+  constexpr static void setOutput(reg_type value) { p_out = value; }
+
+  template <unsigned... bits>
+  constexpr static void unsetOutput(void) {
+    p_out &= ~bitlogic::regMask<reg_type, bits...>();
+  }
+
+  constexpr static reg_type readIn(void) { return p_in; }
+
   enum PINS {
     PIN0 = 0,
     PIN1 = 1,
