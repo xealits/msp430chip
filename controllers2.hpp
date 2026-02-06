@@ -10,10 +10,10 @@ namespace MSP430G2553 {
 //using TimerA_0_original = devices::TimerA<TA0CTL, TA0R, TA0CCTL0, TA0CCR0, TA0CCTL1,
 //                                 TA0CCR1, TA0CCTL2, TA0CCR2, TA0IV>;
 
-using devices::CaptureCompareBlockTemplate;
-using devices::CaptureCompareBlockParams;
+using regmaps::CaptureCompareBlockTemplate;
+using regmaps::CaptureCompareBlockParams;
 
-using TimerA_0 = devices::TimerA<
+using TimerA_0 = regmaps::TimerA<
     TA0CTL, TA0R, TA0IV,
     DevPack<CaptureCompareBlockTemplate
         , CaptureCompareBlockParams<TA0CCTL0, TA0CCR0>
@@ -31,7 +31,7 @@ using TimerA_0 = devices::TimerA<
 
 //using TimerA_1 = devices::TimerA<TA1CTL, TA1R, TA1CCTL0, TA1CCR0, TA1CCTL1,
 //                                 TA1CCR1, TA1CCTL2, TA1CCR2, TA1IV>;
-using Port1 = devices::Port8bitI<P1IN, P1OUT, P1DIR, P1IFG, P1IES, P1IE, P1SEL,
+using Port1 = regmaps::PortIO8bitI<P1IN, P1OUT, P1DIR, P1IFG, P1IES, P1IE, P1SEL,
                                  P1SEL2, P1REN>;
 //using Port2 = devices::Port8bitI<P2IN, P2OUT, P2DIR, P2IFG, P2IES, P2IE, P2SEL,
 //                                 P2SEL2, P2REN>;
@@ -60,10 +60,11 @@ namespace MSP_EXP430G2 {
 namespace controller = controllers::MSP430G2553;
 
 //! \brief red LED
-constexpr unsigned LED1 = controllers::MSP430G2553::Port1::PIN0;
+// TODO: figure out how to do it with explicit types and compile-time checks
+constexpr unsigned LED1 = 0; // controllers::MSP430G2553::Port1::PIN0;
 constexpr unsigned LED_RED = LED1;
 //! \brief green LED
-constexpr unsigned LED2 = controllers::MSP430G2553::Port1::PIN6;
+constexpr unsigned LED2 = 6; // controllers::MSP430G2553::Port1::PIN6;
 constexpr unsigned LED_GREEN = LED2;
 };  // namespace MSP_EXP430G2
 };  // namespace launchpad_boards
