@@ -120,7 +120,8 @@ struct Register {
 
   constexpr static inline reg_t read(void) { return reg; }
 
-  constexpr static inline unsigned check_bit(unsigned bit_n) {
+  template<unsigned bit_n>
+  constexpr static inline unsigned check_bit() {
     static_assert((bit_n) < sizeof(reg_t) * 8,
                 "The requested bit does not fit in the register");
     return bit_n;
@@ -150,73 +151,6 @@ struct Register {
     reg &= ~bitlogic::regMask<reg_t, bits...>();
   }
 };
-
-/*
-/// \brief Dynamic Register description that can be used in static constexprs of types.
-template<typename RegType>
-struct Register2 {
-  using reg_t = std::decay_t<RegType>;
-  static constexpr reg_t& reg;
-
-  template <reg_t new_val>
-  constexpr static inline void write(void) { reg = new_val; }
-
-  constexpr static inline void write(reg_t new_val) { reg = new_val; }
-
-  constexpr static inline reg_t read(void) { return reg; }
-};
-
-/// \brief Dynamic Bitfield description
-template <typename RegType, unsigned offset, unsigned width>
-struct BitField2 {
-  //typedef BitField<RegType, reg, offset, width> BitFieldT;
-  using BitFieldT = BitField2<RegType, offset, width>;
-  using reg_t = std::decay_t<RegType>;
-  static constexpr reg_t& reg;
-
-  // Ti compiler says "std has no member is_pointer_v"
-  // static_assert(!std::is_pointer_v<RegType>, "RegType cannot be a pointer, it
-  // is a reg or a reference");
-  static_assert(!std::is_pointer<RegType>::value,
-                "RegType cannot be a pointer, it is a reg or a reference");
-  using BaseRegT = std::decay_t<RegType>;
-
-  static constexpr unsigned reg_size = sizeof(RegType) * 8;
-  static_assert(offset < reg_size, "bit field offset must fit within register");
-  static_assert(width > 0, "bit field width must be > 0");
-  static_assert(width <= (reg_size - offset),
-                "bit field width must fit from offset to the reg end");
-
-  static constexpr BaseRegT mask = calcMask<BaseRegT, width>();
-
-  using OPT = OptEnum<BitFieldT>;
-
-  static constexpr inline BaseRegT maskValue(BaseRegT value) {
-    return (value & mask) << offset;
-  }
-
-  static constexpr inline BaseRegT set(BaseRegT value) {
-    return maskValue(value);
-  }
-
-  static constexpr inline BaseRegT set(const OPT& value) {
-    // return set(static_cast<BaseRegT>(value));
-    return maskValue(value);
-  }
-
-  template <typename T>
-  static constexpr inline BaseRegT set(T value) = delete;
-
-  static constexpr RegType read(void) { return (reg >> offset) & mask; }
-  static constexpr void write(BaseRegT field_val) {
-    // auto new_value = reg | ((field_val & mask) << offset);
-    // reg = new_value;
-    // reg |= (field_val & mask) << offset;
-    BaseRegT new_val = (field_val & mask) << offset;
-    reg = new_val;
-  }
-};
-*/
 
 
 enum LOGIC_LEVELS { HIGH, LOW };
