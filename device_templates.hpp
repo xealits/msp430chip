@@ -135,5 +135,59 @@ struct PortIO8bitI {
   struct p_ie : public Register<decltype(p_ie_t), p_ie_t> {};
 };
 
+template<volatile unsigned char& DataTransferControl0_t,
+         volatile unsigned char& DataTransferControl1_t,
+         volatile unsigned char& AnalogEnable0_t,
+         volatile unsigned int& Control0_t>
+struct ADC10 {
+  ADC10() = delete;
+
+  struct DataTransferControl0 : public Register<decltype(DataTransferControl0_t), DataTransferControl0_t> {
+    using fetch = BitField<decltype(DataTransferControl0_t), DataTransferControl0_t, 0, 1>;
+    using block_one = BitField<decltype(DataTransferControl0_t), DataTransferControl0_t, 1, 1>;
+    using continuous_transfer = BitField<decltype(DataTransferControl0_t), DataTransferControl0_t, 2, 1>;
+    using two_block_mode = BitField<decltype(DataTransferControl0_t), DataTransferControl0_t, 3, 1>;
+  };
+
+  struct DataTransferControl1 : public Register<decltype(DataTransferControl1_t), DataTransferControl1_t> {
+    using fetch = BitField<decltype(DataTransferControl1_t), DataTransferControl1_t, 0, 1>;
+    using block_one = BitField<decltype(DataTransferControl1_t), DataTransferControl1_t, 1, 1>;
+    using continuous_transfer = BitField<decltype(DataTransferControl1_t), DataTransferControl1_t, 2, 1>;
+    using two_block_mode = BitField<decltype(DataTransferControl1_t), DataTransferControl1_t, 3, 1>;
+  };
+
+  struct AnalogEnable0 : public Register<decltype(AnalogEnable0_t), AnalogEnable0_t> {};
+
+  struct Control0 : public Register<decltype(Control0_t), Control0_t> {
+    using start_conversion = BitField<decltype(Control0_t), Control0_t, 0, 1>;
+    using enable_conversion = BitField<decltype(Control0_t), Control0_t, 1, 1>;
+    using interrupt_flag = BitField<decltype(Control0_t), Control0_t, 2, 1>;
+    using interrupt_enable = BitField<decltype(Control0_t), Control0_t, 3, 1>;
+    using on_enable = BitField<decltype(Control0_t), Control0_t, 4, 1>;
+    using ref_on = BitField<decltype(Control0_t), Control0_t, 5, 1>;
+    using ref_setting = BitField<decltype(Control0_t), Control0_t, 6, 1>;
+    using multiple_sample_conversion = BitField<decltype(Control0_t), Control0_t, 7, 1>;
+    using ref_burst_mode = BitField<decltype(Control0_t), Control0_t, 8, 1>;
+    using enable_output_of_ref = BitField<decltype(Control0_t), Control0_t, 9, 1>;
+    using sampling_rate = BitField<decltype(Control0_t), Control0_t, 10, 1>;
+    using sample_hold_select = BitField<decltype(Control0_t), Control0_t, 11, 2>;
+    constexpr static typename sample_hold_select::OPT
+      SH_0{0} /** 4 x ADC10 clocks */,
+      SH_1{1} /** 8 x ADC10 clocks */,
+      SH_2{2} /** 16 x ADC10 clocks */,
+      SH_3{3} /** 64 x ADC10 clocks */;
+    using reference_select = BitField<decltype(Control0_t), Control0_t, 13, 3>;
+    constexpr static typename reference_select::OPT
+      REF_0{0} /** VR+ = AVCC and VR- = AVSS */,
+      REF_1{1} /** VR+ = VREF+ and VR- = AVSS */,
+      REF_2{2} /** VR+ = VEREF+ and VR- = AVSS */,
+      REF_3{3} /** VR+ = VEREF+ and VR- = AVSS */,
+      REF_4{4} /** VR+ = AVCC and VR- = VREF-/VEREF- */,
+      REF_5{5} /** VR+ = VREF+ and VR- = VREF-/VEREF- */,
+      REF_6{6} /** VR+ = VEREF+ and VR- = VREF-/VEREF- */,
+      REF_7{7} /** VR+ = VEREF+ and VR- = VREF-/VEREF- */;
+  };
+};
+
 };
 

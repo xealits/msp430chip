@@ -209,3 +209,110 @@ Registers.
 </details>
 </div>
 
+A complicated one, ADC10:
+
+<div class="device_template" id="ADC10">
+Device template name: <dfn class="cpp_name">ADC10</dfn>
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+<li class="register" id="ADC10.DataTransferControl0">
+Name: <dfn>DataTransferControl0</dfn>. Width: <span class="width">8</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>fetch</dfn> <span class="offset">0</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>block_one</dfn> <span class="offset">1</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>continuous_transfer</dfn> <span class="offset">2</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>two_block_mode</dfn> <span class="offset">3</span> <span class="width">1</span> </li>
+</ul>
+</details>
+</li>
+
+<li class="register" id="ADC10.DataTransferControl1">
+Name: <dfn>DataTransferControl1</dfn>. Width: <span class="width">8</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>fetch</dfn> <span class="offset">0</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>block_one</dfn> <span class="offset">1</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>continuous_transfer</dfn> <span class="offset">2</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>two_block_mode</dfn> <span class="offset">3</span> <span class="width">1</span> </li>
+</ul>
+</details>
+</li>
+
+
+<li class="register" id="ADC10.AnalogEnable0">
+Name: <dfn>AnalogEnable0</dfn>. Width: <span class="width">8</span>.
+</li>
+
+<li class="register" id="ADC10.Control0">
+Name: <dfn>Control0</dfn>. Width: <span class="width">16</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>start_conversion</dfn> <span class="offset">0</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>enable_conversion</dfn> <span class="offset">1</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>interrupt_flag</dfn> <span class="offset">2</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>interrupt_enable</dfn> <span class="offset">3</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>on_enable</dfn> <span class="offset">4</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>ref_on</dfn> <span class="offset">5</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>ref_setting</dfn> <span class="offset">6</span> <span class="width">1</span>
+0 = 1.5V, 1 = 2.5V
+</li>
+<li class="field"> <dfn>multiple_sample_conversion</dfn> <span class="offset">7</span> <span class="width">1</span> </li>
+
+<li class="field"> <dfn>ref_burst_mode</dfn> <span class="offset">8</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>enable_output_of_ref</dfn> <span class="offset">9</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>sampling_rate</dfn> <span class="offset">10</span> <span class="width">1</span>
+0 = 200ksps, 1 = 50ksps
+</li>
+
+<li class="field"> <dfn>sample_hold_select</dfn> <span class="offset">11</span> <span class="width">2</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">SH_0</data> <span class="comment">4 x ADC10 clocks</span></span>
+  <span class="value_option"><data value="1">SH_1</data> <span class="comment">8 x ADC10 clocks</span></span>
+  <span class="value_option"><data value="2">SH_2</data> <span class="comment">16 x ADC10 clocks</span></span>
+  <span class="value_option"><data value="3">SH_3</data> <span class="comment">64 x ADC10 clocks</span></span>
+</details>
+</li>
+
+<li class="field"> <dfn>reference_select</dfn> <span class="offset">13</span> <span class="width">3</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">REF_0</data> <span class="comment">VR+ = AVCC and VR- = AVSS</span></span>
+  <span class="value_option"><data value="1">REF_1</data> <span class="comment">VR+ = VREF+ and VR- = AVSS</span></span>
+  <span class="value_option"><data value="2">REF_2</data> <span class="comment">VR+ = VEREF+ and VR- = AVSS</span></span>
+  <span class="value_option"><data value="3">REF_3</data> <span class="comment">VR+ = VEREF+ and VR- = AVSS</span></span>
+  <span class="value_option"><data value="4">REF_4</data> <span class="comment">VR+ = AVCC and VR- = VREF-/VEREF-</span></span>
+  <span class="value_option"><data value="5">REF_5</data> <span class="comment">VR+ = VREF+ and VR- = VREF-/VEREF-</span></span>
+  <span class="value_option"><data value="6">REF_6</data> <span class="comment">VR+ = VEREF+ and VR- = VREF-/VEREF-</span></span>
+  <span class="value_option"><data value="7">REF_7</data> <span class="comment">VR+ = VEREF+ and VR- = VREF-/VEREF-</span></span>
+</details>
+</li>
+
+</ul>
+</details>
+</li>
+
+</ul>
+</details>
+</div>
+
+
+

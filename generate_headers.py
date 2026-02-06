@@ -72,6 +72,14 @@ known_reg_types_cpp = {
 class RegFieldOptValue:
     name: str
     bits: int
+    comment: str = ""
+
+    def to_cpp(self):
+        opt_str = f"{self.name}{{{self.bits}}}"
+        if self.comment:
+            opt_str += f" /** {self.comment} */"
+
+        return opt_str
 
 @dataclass
 class RegField:
@@ -84,7 +92,7 @@ class RegField:
         contents = reg_field_template.format(name=self.name, reg_ref=reg_ref, offset=self.offset, width=self.width)
 
         if self.option_values:
-            opts = "\n  " + ",\n  ".join(f"{opt.name}{{{opt.bits}}}" for opt in self.option_values)
+            opts = "\n  " + ",\n  ".join(opt.to_cpp() for opt in self.option_values)
             opts_defs = reg_field_options_template.format(name=self.name, opts=opts)
             contents += "\n" + opts_defs
 
@@ -191,15 +199,27 @@ def parse_field(bs_elem):
     #info = {"offset": offset, "width": width}
 
     opt_dict = {}
+    # the old direct options with no comments:
     for opt in bs_elem.select(":scope > details > data.value_option"):
         opt_name = opt.text.strip()
         value = int(opt["value"])
         assert opt_name not in opt_dict
-        opt_dict[opt_name] = value
+        comment = ""
+        opt_dict[opt_name] = (value, comment)
+
+    # new options with comments
+    for opt in bs_elem.select(":scope > details > span.value_option"):
+        opt_data = opt.select_one(":scope > data")
+        opt_name = opt_data.text.strip()
+        value = int(opt_data["value"])
+        comment = opt.select_one(":scope > span.comment")
+        if comment is not None:
+            comment = comment.text.strip()
+        opt_dict[opt_name] = (value, comment)
 
     opt_values = []
-    for opt_name, value in sorted(opt_dict.items(), key=lambda it: it[1]):
-        opt_values.append(RegFieldOptValue(opt_name, value))
+    for opt_name, (value, comment) in sorted(opt_dict.items(), key=lambda it: it[1]):
+        opt_values.append(RegFieldOptValue(opt_name, value, comment))
 
     field = RegField(name, offset, width, opt_values)
     return name, field
@@ -295,7 +315,6 @@ source_template = """
 #pragma once
 
 #include <cstdint>
-#include "devpacks.hpp"
 #include "bitlogic.hpp"
 
 namespace regmaps {{
