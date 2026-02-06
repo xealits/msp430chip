@@ -56,12 +56,14 @@ template<typename {name}Params_t>
 struct {name}Template;
 
 template<{dev_refs}>
-struct {name}Template<{name}Params<{dev_refs}>> {{
+struct {name}Template<{name}Params<{dev_refs_used}>> {{
   {name}Template() = delete;
 
 {dev_defs}
 }};
 """
+
+known_reg_types_cpp = {16: "unsigned int", 32: "unsigned long"}
 
 @dataclass
 class RegFieldOptValue:
@@ -79,7 +81,7 @@ class RegField:
         contents = reg_field_template.format(name=self.name, reg_ref=reg_ref, offset=self.offset, width=self.width)
 
         if self.option_values:
-            opts = "\n  " + "\n  ".join(f"{opt.name}{{{opt.bits}}}" for opt in self.option_values)
+            opts = "\n  " + ",\n  ".join(f"{opt.name}{{{opt.bits}}}" for opt in self.option_values)
             opts_defs = reg_field_options_template.format(name=self.name, opts=opts)
             contents += "\n" + opts_defs
 
@@ -88,13 +90,12 @@ class RegField:
 @dataclass
 class Register:
     name: str
-    width: int = 32
+    width: int = 16
     fields: dict = field(default_factory=dict)
 
     def __getattr__(self, name):
-        known_types = {32: "uint32_t"}
         if name == "cpp_type":
-            return known_types.get(self.width)
+            return known_reg_types_cpp[self.width]
 
         raise AttributeError(f"'Register' object has no attribute {name}")
 
@@ -172,7 +173,12 @@ class SubDevice(Device):
         dev_refs = reg_decls
         dev_defs = reg_defs
 
-        cpp = subdev_decl_template.format(name=self.name, dev_refs=dev_refs, dev_defs=dev_defs)
+        dev_refs_used = [reg.name + "_t" for reg in self.registers.values()]
+        dev_refs_used = ", ".join(dev_refs_used)
+
+        # TODO: add sub-devices
+
+        cpp = subdev_decl_template.format(name=self.name, dev_refs=dev_refs, dev_refs_used=dev_refs_used, dev_defs=dev_defs)
         return cpp
 
 def parse_field(bs_elem):
@@ -197,7 +203,7 @@ def parse_field(bs_elem):
 
 def parse_register(bs_elem):
     name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
-    width = 32
+    width = 16  # TODO: add to data-sheet
     #cpp_type = {32: "uint32_t"}[width]
     #reg_info = {"width": width, "cpp_type": cpp_type}
 
@@ -253,14 +259,14 @@ def parse_device_template(bs_elem, known_templates={}, toplevel=False):
 device_templates = {}
 
 devices = find_topmost(soup, "div", "device_template")
-print("Number of top-level devices:", len(devices))
+#print("Number of top-level devices:", len(devices))
 
 # the top level devices are divs
 # the subdevices are the usual li inside the divs
 for dev in devices:
     parse_device_template(dev, device_templates, True)
 
-pprint(device_templates)
+#pprint(device_templates)
 
 #for reg in device_templates["TimerA"].registers.values():
 #    reg_ref = reg.name + "_t"
@@ -274,5 +280,23 @@ for devname, dev in device_templates.items():
     else:
         devices_toplevel += dev.to_cpp()
 
-print(devices_subdevices)
-print(devices_toplevel)
+#print(devices_subdevices)
+#print(devices_toplevel)
+
+source_template = """
+#pragma once
+
+#include <cstdint>
+#include "devpacks.hpp"
+#include "bitlogic.hpp"
+
+namespace devices {{
+using bitlogic::BitField;
+using bitlogic::Register;
+
+{sources}
+}};
+"""
+
+all_sources = devices_subdevices + devices_toplevel
+print(source_template.format(sources=all_sources))
