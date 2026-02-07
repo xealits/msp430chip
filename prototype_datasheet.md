@@ -228,10 +228,10 @@ Fields.
 </summary>
 
 <ul>
-<li class="field"> <dfn>fetch</dfn> <span class="offset">0</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>block_one</dfn> <span class="offset">1</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>continuous_transfer</dfn> <span class="offset">2</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>two_block_mode</dfn> <span class="offset">3</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>fetch</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>block_one</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
+<li class="field"> <dfn>continuous_transfer</dfn> <span class="width">1</span>'@<span class="offset">2</span> </li>
+<li class="field"> <dfn>two_block_mode</dfn> <span class="width">1</span>'@<span class="offset">3</span> </li>
 </ul>
 </details>
 </li>
@@ -244,10 +244,10 @@ Fields.
 </summary>
 
 <ul>
-<li class="field"> <dfn>fetch</dfn> <span class="offset">0</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>block_one</dfn> <span class="offset">1</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>continuous_transfer</dfn> <span class="offset">2</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>two_block_mode</dfn> <span class="offset">3</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>fetch</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>block_one</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
+<li class="field"> <dfn>continuous_transfer</dfn> <span class="width">1</span>'@<span class="offset">2</span> </li>
+<li class="field"> <dfn>two_block_mode</dfn> <span class="width">1</span>'@<span class="offset">3</span> </li>
 </ul>
 </details>
 </li>
@@ -265,24 +265,24 @@ Fields.
 </summary>
 
 <ul>
-<li class="field"> <dfn>start_conversion</dfn> <span class="offset">0</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>enable_conversion</dfn> <span class="offset">1</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>interrupt_flag</dfn> <span class="offset">2</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>interrupt_enable</dfn> <span class="offset">3</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>on_enable</dfn> <span class="offset">4</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>ref_on</dfn> <span class="offset">5</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>ref_setting</dfn> <span class="offset">6</span> <span class="width">1</span>
+<li class="field"> <dfn>start_conversion</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>enable_conversion</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
+<li class="field"> <dfn>interrupt_flag</dfn> <span class="width">1</span>'@<span class="offset">2</span> </li>
+<li class="field"> <dfn>interrupt_enable</dfn> <span class="width">1</span>'@<span class="offset">3</span> </li>
+<li class="field"> <dfn>on_enable</dfn> <span class="width">1</span>'@<span class="offset">4</span> </li>
+<li class="field"> <dfn>ref_on</dfn> <span class="width">1</span>'@<span class="offset">5</span> </li>
+<li class="field"> <dfn>ref_setting</dfn> <span class="width">1</span>'@<span class="offset">6</span>
 0 = 1.5V, 1 = 2.5V
 </li>
-<li class="field"> <dfn>multiple_sample_conversion</dfn> <span class="offset">7</span> <span class="width">1</span> </li>
+<li class="field"> <dfn>multiple_sample_conversion</dfn> <span class="width">1</span>'@<span class="offset">7</span> </li>
 
-<li class="field"> <dfn>ref_burst_mode</dfn> <span class="offset">8</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>enable_output_of_ref</dfn> <span class="offset">9</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>sampling_rate</dfn> <span class="offset">10</span> <span class="width">1</span>
+<li class="field"> <dfn>ref_burst_mode</dfn> <span class="width">1</span>'@<span class="offset">8</span> </li>
+<li class="field"> <dfn>enable_output_of_ref</dfn> <span class="width">1</span>'@<span class="offset">9</span> </li>
+<li class="field"> <dfn>sampling_rate</dfn> <span class="width">1</span>'@<span class="offset">10</span>
 0 = 200ksps, 1 = 50ksps
 </li>
 
-<li class="field"> <dfn>sample_hold_select</dfn> <span class="offset">11</span> <span class="width">2</span>
+<li class="field"> <dfn>sample_hold_select</dfn> <span class="width">2</span>'@<span class="offset">11</span>
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">SH_x4</data> <span class="comment">4 x ADC10 clocks</span></span>
@@ -292,7 +292,7 @@ Fields.
 </details>
 </li>
 
-<li class="field"> <dfn>reference_select</dfn> <span class="offset">13</span> <span class="width">3</span>
+<li class="field"> <dfn>reference_select</dfn> <span class="width">3</span>'@<span class="offset">13</span>
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">REF_0</data> <span class="comment">VR+ = AVCC and VR- = AVSS</span></span>
@@ -319,8 +319,8 @@ Fields.
 </summary>
 
 <ul>
-<li class="field"> <dfn>busy</dfn> <span class="offset">0</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>conversion_sequence</dfn> <span class="offset">1</span> <span class="width">2</span>
+<li class="field"> <dfn>busy</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>conversion_sequence</dfn> <span class="width">2</span>'@<span class="offset">1</span>
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">SingleChannelSingleConversion</data> </span>
@@ -330,7 +330,7 @@ Fields.
 </details>
 </li>
 
-<li class="field"> <dfn>clock_source</dfn> <span class="offset">3</span> <span class="width">2</span>
+<li class="field"> <dfn>clock_source</dfn> <span class="width">2</span>'@<span class="offset">3</span>
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">ADC10OSC</data> </span>
@@ -340,7 +340,7 @@ Fields.
 </details>
 </li>
 
-<li class="field"> <dfn>clock_divider</dfn> <span class="offset">5</span> <span class="width">3</span>
+<li class="field"> <dfn>clock_divider</dfn> <span class="width">3</span>'@<span class="offset">5</span>
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">DIV_0</data> </span>
@@ -354,11 +354,11 @@ Fields.
 </details>
 </li>
 
-<li class="field"> <dfn>invert_sample_hold</dfn> <span class="offset">8</span> <span class="width">1</span> </li>
-<li class="field"> <dfn>data_format</dfn> <span class="offset">9</span> <span class="width">1</span>
+<li class="field"> <dfn>invert_sample_hold</dfn> <span class="width">1</span>'@<span class="offset">8</span> </li>
+<li class="field"> <dfn>data_format</dfn> <span class="width">1</span>'@<span class="offset">9</span>
 <span class="comment">0 = binary, 1 = 2's complement</span>
 </li>
-<li class="field"> <dfn>sample_hold_source</dfn> <span class="offset">10</span> <span class="width">2</span>
+<li class="field"> <dfn>sample_hold_source</dfn> <span class="width">2</span>'@<span class="offset">10</span>
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">ADC10OSC</data> </span>
@@ -368,7 +368,7 @@ Fields.
 </details>
 </li>
 
-<li class="field"> <dfn>input_channel</dfn> <span class="offset">12</span> <span class="width">4</span>
+<li class="field"> <dfn>input_channel</dfn> <span class="width">4</span>'@<span class="offset">12</span>
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">CH_0</data> </span>
