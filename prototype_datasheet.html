@@ -361,7 +361,7 @@ Fields.
 <li class="field"> <dfn>sample_hold_source</dfn> <span class="offset">10</span> <span class="width">2</span>
 <details>
   <summary>Value options.</summary>
-  <span class="value_option"><data value="0">SHS_ADC10OSC</data> </span>
+  <span class="value_option"><data value="0">ADC10OSC</data> </span>
   <span class="value_option"><data value="1">TA3_OUT1</data> </span>
   <span class="value_option"><data value="2">TA3_OUT0</data> </span>
   <span class="value_option"><data value="3">TA3_OUT2</data> </span>

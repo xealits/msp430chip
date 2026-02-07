@@ -30,7 +30,7 @@ def find_topmost(soup, tag, class_ = None):
     return found_els
 
 templ_space = " " * len("template<")
-reg_field_template = "using {name} = BitField<decltype({reg_ref}), {reg_ref}, {offset}, {width}>;"
+reg_field_template = "struct {name} : public BitField<decltype({reg_ref}), {reg_ref}, {offset}, {width}> {body};"
 reg_field_options_template = "constexpr static typename {name}::OPT{opts};"
 
 reg_template = "struct {name} : public Register<decltype({reg_ref}), {reg_ref}> {body};"
@@ -93,12 +93,17 @@ class RegField:
         contents = ""
         if self.comment:
             contents += f"/// {self.comment}\n"
-        contents += reg_field_template.format(name=self.name, reg_ref=reg_ref, offset=self.offset, width=self.width)
 
         if self.option_values:
             opts = "\n  " + ",\n  ".join(opt.to_cpp() for opt in self.option_values)
             opts_defs = reg_field_options_template.format(name=self.name, opts=opts)
-            contents += "\n" + opts_defs
+            #contents += "\n" + opts_defs
+            body = f"{{\n{indent(opts_defs, "  ")}\n}}"
+
+        else:
+            body = "{}"
+
+        contents += reg_field_template.format(name=self.name, reg_ref=reg_ref, offset=self.offset, width=self.width, body=body)
 
         return indent(contents, "  "*indentation)
 
