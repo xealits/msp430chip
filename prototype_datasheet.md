@@ -1,29 +1,45 @@
 ---
-title: Ridiculous Digital Datasheet for MSP430G2xx and MSP430F2xx
+title: Prototype Parsable Datasheet for MSP430G2xx and MSP430F2xx
 author: Alex Toldaiev
-date: February 2, 2026
+date: February 7, 2026
 ---
 
 # Introduction
 
-Testing an old idea: single-source description of chips.
+Testing an old idea: single-sourced description of chips.
 
-* Have a very readable and writable and parseable document:
+* Make a very readable and writable and parseable document
+for declarative description of the memory and registers:
   + Markdown and HTML generated with Pandoc.
 * And generate C++ headers from the parseable version,
 using very well fitting C++ constructions, so that the header-generation
 is trivial and does not encode any actual C++ logic.
-* It should also somehow maintain a good link between the generated doxygen docs and the original document. Add URLs in doxygen. But with respect to what? It needs some good citation to an HTML document.
+* It should also somehow maintain a good link between the generated doxygen docs and the original document.
+Add URLs in doxygen. But with respect to what? It needs some good citation to an HTML document.
 
-Use the Ti User Guide for MSP430F2xx and MSP430G2xx chips.
-And the `msp430g2553.h` header for the MSP430G2553 model.
+I use the `msp430g2553.h` header for the MSP430G2553 model,
+and the Ti User Guide for MSP430F2xx and MSP430G2xx chips.
 
-Let's try on the TimerA and its Capture/Compare blocks.
+Aside of memory maps of common devices, it should be possible
+to also declaratively describe:
+* Concrete MSP430 chips. Just instantiate all the devices and Special Function Registers
+with the corresponding Ti C header. This is done in `controllers.hpp` for MSP430G2553.
+It would probably be better to declaratively describe it in Markdown-HTML.
+* Chips come in different packages. Describe the pinout of the packages.
+* The Launchpad boards. My board `MSP_EXP430G2` is hand-coded in `controllers.hpp`.
+It is probably useful to write it up in Markdown-HTML too.
 
-# TimerA
+It may be handy to compile custom documents for individual chips or boards.
+The custom document would combine only the present devices in a readable way.
+To avoid browsing for the info on a specific device (TimerA or ADC10)
+and the board pinout etc.
 
-Any text with notes, links, code, all normal markdown.
-And also descriptions of devices.
+# Devices in MSP430 chips
+
+The memory maps (register maps) of devices in Ti MSP430 chips.
+The info is from the `msp430g2553.h` header.
+But the maps describe generic devices, not how they show up in the MSP430G2553 chip itself.
+In fact, the chip is hand-coded in the `controllers.hpp` header.
 
 <div class="device_template" id="TimerA">
 Device template name: <dfn class="cpp_name">TimerA</dfn>
@@ -361,6 +377,9 @@ Fields.
 <li class="field"> <dfn>sample_hold_source</dfn> <span class="width">2</span>'@<span class="offset">10</span>
 <details>
   <summary>Value options.</summary>
+  For some reason the order is a bit weird: <code>TA3_OUT0=2</code> and <code>TA3_OUT2=3</code>.
+  But that's how it is in the <code>msp430g2553.h</code> header.
+
   <span class="value_option"><data value="0">ADC10OSC</data> </span>
   <span class="value_option"><data value="1">TA3_OUT1</data> </span>
   <span class="value_option"><data value="2">TA3_OUT0</data> </span>

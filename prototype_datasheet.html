@@ -2,26 +2,38 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="date" content='2026-02-02'>
-    <title>Ridiculous Digital Datasheet for MSP430G2xx and
+    <meta name="date" content='2026-02-07'>
+    <title>Prototype Parsable Datasheet for MSP430G2xx and
 MSP430F2xx</title>
     <style>
     .device_template {
-      border: solid #000;
+      border: solid light-dark(#000, #333b3c);
       border-width: thin;
     }
     data.value_option::after {
       content: " =" attr(value) " ";
       font-size: 0.7em;
     }
+    span.value_option > data::after {
+      content: " =" attr(value) " ";
+      font-size: 0.7em;
+    }
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      color: light-dark(black, #efefec);
+      background-color: light-dark(#efedea, #171515);
+    }
     </style>
   </head>
   <body>
-    <p>Date: February 2, 2026</p>
+    <p>Date: February 7, 2026</p>
 <h1 id="introduction">Introduction</h1>
-<p>Testing an old idea: single-source description of chips.</p>
+<p>Testing an old idea: single-sourced description of chips.</p>
 <ul>
-<li>Have a very readable and writable and parseable document:
+<li>Make a very readable and writable and parseable document for
+declarative description of the memory and registers:
 <ul>
 <li>Markdown and HTML generated with Pandoc.</li>
 </ul></li>
@@ -32,12 +44,27 @@ does not encode any actual C++ logic.</li>
 doxygen docs and the original document. Add URLs in doxygen. But with
 respect to what? It needs some good citation to an HTML document.</li>
 </ul>
-<p>Use the Ti User Guide for MSP430F2xx and MSP430G2xx chips. And the
-<code>msp430g2553.h</code> header for the MSP430G2553 model.</p>
-<p>Let’s try on the TimerA and its Capture/Compare blocks.</p>
-<h1 id="timera">TimerA</h1>
-<p>Any text with notes, links, code, all normal markdown. And also
-descriptions of devices.</p>
+<p>I use the <code>msp430g2553.h</code> header for the MSP430G2553
+model, and the Ti User Guide for MSP430F2xx and MSP430G2xx chips.</p>
+<p>Aside of memory maps of common devices, it should be possible to also
+declaratively describe: * Concrete MSP430 chips. Just instantiate all
+the devices and Special Function Registers with the corresponding Ti C
+header. This is done in <code>controllers.hpp</code> for MSP430G2553. It
+would probably be better to declaratively describe it in Markdown-HTML.
+* Chips come in different packages. Describe the pinout of the packages.
+* The Launchpad boards. My board <code>MSP_EXP430G2</code> is hand-coded
+in <code>controllers.hpp</code>. It is probably useful to write it up in
+Markdown-HTML too.</p>
+<p>It may be handy to compile custom documents for individual chips or
+boards. The custom document would combine only the present devices in a
+readable way. To avoid browsing for the info on a specific device
+(TimerA or ADC10) and the board pinout etc.</p>
+<h1 id="devices-in-msp430-chips">Devices in MSP430 chips</h1>
+<p>The memory maps (register maps) of devices in Ti MSP430 chips. The
+info is from the <code>msp430g2553.h</code> header. But the maps
+describe generic devices, not how they show up in the MSP430G2553 chip
+itself. In fact, the chip is hand-coded in the
+<code>controllers.hpp</code> header.</p>
 <div id="TimerA" class="device_template">
 <p>Device template name: <dfn class="cpp_name">TimerA</dfn></p>
 <p>TimerA device info summary.</p>
@@ -361,6 +388,9 @@ Fields.
 <li class="field"> <dfn>sample_hold_source</dfn> <span class="width">2</span>'@<span class="offset">10</span>
 <details>
   <summary>Value options.</summary>
+  For some reason the order is a bit weird: <code>TA3_OUT0=2</code> and <code>TA3_OUT2=3</code>.
+  But that's how it is in the <code>msp430g2553.h</code> header.
+
   <span class="value_option"><data value="0">ADC10OSC</data> </span>
   <span class="value_option"><data value="1">TA3_OUT1</data> </span>
   <span class="value_option"><data value="2">TA3_OUT0</data> </span>
