@@ -23,6 +23,14 @@ namespace MSP430G2553 {
             , CaptureCompareBlockParams<TA0CCTL2, TA0CCR2>
         >>;
 
+    using TimerA_1 = regmaps::TimerA<
+        TA1CTL, TA1R, TA1IV,
+        DevPack<CaptureCompareBlockTemplate
+            , CaptureCompareBlockParams<TA1CCTL0, TA1CCR0>
+            , CaptureCompareBlockParams<TA1CCTL1, TA1CCR1>
+            , CaptureCompareBlockParams<TA1CCTL2, TA1CCR2>
+        >>;
+
     using Port1 = regmaps::PortIO8bitI<P1IN, P1OUT, P1DIR,
                                     P1SEL, P1SEL2, P1REN,
                                     P1IFG, P1IES, P1IE>;

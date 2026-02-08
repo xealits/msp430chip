@@ -40,8 +40,8 @@ struct CaptureCompareBlockTemplate<CaptureCompareBlockParams<CapComControl_t, Ca
 };
 
 template<volatile unsigned int& Control_t,
-         volatile unsigned int& TimerReg_t,
-         volatile unsigned int& InterruptVector_t,
+         volatile unsigned int& CounterRegister_t,
+         volatile unsigned int& InterruptVectorWord_t,
          typename CaptureCompareBlock_t>
 struct TimerA {
   TimerA() = delete;
@@ -75,10 +75,16 @@ struct TimerA {
     struct unused11 : public BitField<decltype(Control_t), Control_t, 11, 5> {};
   };
 
-  struct TimerReg : public Register<decltype(TimerReg_t), TimerReg_t> {};
+  struct CounterRegister : public Register<decltype(CounterRegister_t), CounterRegister_t> {};
 
-  struct InterruptVector : public Register<decltype(InterruptVector_t), InterruptVector_t> {
-    struct contents : public BitField<decltype(InterruptVector_t), InterruptVector_t, 1, 4> {};
+  struct InterruptVectorWord : public Register<decltype(InterruptVectorWord_t), InterruptVectorWord_t> {
+    struct contents : public BitField<decltype(InterruptVectorWord_t), InterruptVectorWord_t, 1, 4> {
+      constexpr static typename contents::OPT
+        NO_INTERRUPTS{0},
+        CCR1_IFG{1},
+        CCR2_IFG{2},
+        TA_IFG{5};
+    };
   };
 
   template<unsigned dev_i>
@@ -252,6 +258,131 @@ struct ADC10 {
         CH_14{14},
         CH_15{15};
     };
+  };
+};
+
+template<volatile unsigned char& DCOClockFrequencyControl_t,
+         volatile unsigned char& Control1_t,
+         volatile unsigned char& Control2_t,
+         volatile unsigned char& Control3_t>
+struct BasicClockModule {
+  BasicClockModule() = delete;
+
+  struct DCOClockFrequencyControl : public Register<decltype(DCOClockFrequencyControl_t), DCOClockFrequencyControl_t> {
+    struct Modulation : public BitField<decltype(DCOClockFrequencyControl_t), DCOClockFrequencyControl_t, 0, 5> {};
+    struct DCOSelect : public BitField<decltype(DCOClockFrequencyControl_t), DCOClockFrequencyControl_t, 5, 3> {};
+  };
+
+  struct Control1 : public Register<decltype(Control1_t), Control1_t> {
+    struct Range : public BitField<decltype(Control1_t), Control1_t, 0, 4> {};
+    struct ACLKDivider : public BitField<decltype(Control1_t), Control1_t, 4, 2> {
+      constexpr static typename ACLKDivider::OPT
+        DIV_x1{0},
+        DIV_x2{1},
+        DIV_x4{2},
+        DIV_x8{3};
+    };
+    struct XTSelect : public BitField<decltype(Control1_t), Control1_t, 6, 1> {
+      constexpr static typename XTSelect::OPT
+        LOW_FREQUENCY{0},
+        HIGH_FREQUENCY{1};
+    };
+    /// Enable XT2CLK
+    struct XT2Off : public BitField<decltype(Control1_t), Control1_t, 7, 1> {};
+  };
+
+  struct Control2 : public Register<decltype(Control2_t), Control2_t> {
+    struct SMCLKDivider : public BitField<decltype(Control2_t), Control2_t, 0, 2> {
+      constexpr static typename SMCLKDivider::OPT
+        DIV_x1{0},
+        DIV_x2{1},
+        DIV_x4{2},
+        DIV_x8{3};
+    };
+    struct SMCLKSource : public BitField<decltype(Control2_t), Control2_t, 2, 1> {
+      constexpr static typename SMCLKSource::OPT
+        DCOCLK{0},
+        XT2CLK_LFXTCLK{1};
+    };
+    struct MCLKDivider : public BitField<decltype(Control2_t), Control2_t, 3, 2> {
+      constexpr static typename MCLKDivider::OPT
+        DIV_x1{0},
+        DIV_x2{1},
+        DIV_x4{2},
+        DIV_x8{3};
+    };
+    struct MCLKSource : public BitField<decltype(Control2_t), Control2_t, 5, 2> {
+      constexpr static typename MCLKSource::OPT
+        DCOCLK{1},
+        XT2CLK_LFXTCLK{2},
+        LFXTCLK{3};
+    };
+  };
+
+  struct Control3 : public Register<decltype(Control3_t), Control3_t> {
+    /// Low/high frequency oscillator fault flag
+    struct LFXT_OscillatorFaultFlag : public BitField<decltype(Control3_t), Control3_t, 0, 1> {};
+    /// High frequency oscillator 2 fault flag
+    struct XT_OscillatorFaultFlag : public BitField<decltype(Control3_t), Control3_t, 1, 1> {};
+    struct XIN_XOUT_Cap : public BitField<decltype(Control3_t), Control3_t, 2, 2> {
+      constexpr static typename XIN_XOUT_Cap::OPT
+        XCAP_0pF{0},
+        XCAP_6pF{1},
+        XCAP_10pF{2},
+        XCAP_12pF5{3};
+    };
+    struct LFXT1_Mode : public BitField<decltype(Control3_t), Control3_t, 4, 2> {
+      constexpr static typename LFXT1_Mode::OPT
+        NORMAL_OPERATION{0},
+        Reserved{1},
+        VLO{2},
+        DIGITAL_INPUT_SIGNAL{3};
+    };
+    struct XT2_Mode : public BitField<decltype(Control3_t), Control3_t, 6, 2> {
+      constexpr static typename XT2_Mode::OPT
+        MODE_0p4_1_MHz{0},
+        MODE_1_4_MHz{1},
+        MODE_2_16_MHz{2},
+        DIGITAL_INPUT_SIGNAL{3};
+    };
+  };
+};
+
+template<volatile unsigned char& Control1_t,
+         volatile unsigned char& Control2_t,
+         volatile unsigned char& PortDisable_t>
+struct ComparatorA {
+  ComparatorA() = delete;
+
+  struct Control1 : public Register<decltype(Control1_t), Control1_t> {
+    struct InterruptFlag : public BitField<decltype(Control1_t), Control1_t, 0, 1> {};
+    struct InterruptEnable : public BitField<decltype(Control1_t), Control1_t, 1, 1> {};
+    struct EdgeSelect : public BitField<decltype(Control1_t), Control1_t, 2, 1> {
+      constexpr static typename EdgeSelect::OPT
+        RISING{0},
+        FALLING{1};
+    };
+    struct Enable : public BitField<decltype(Control1_t), Control1_t, 3, 1> {};
+    struct InternalReference : public BitField<decltype(Control1_t), Control1_t, 4, 2> {
+      constexpr static typename InternalReference::OPT
+        OFF{0},
+        REF_0p25Vcc{1},
+        REF_0p5Vcc{2},
+        REF_Vt{3};
+    };
+    struct InternalReferenceEnable : public BitField<decltype(Control1_t), Control1_t, 6, 1> {};
+    struct ExchangeInputs : public BitField<decltype(Control1_t), Control1_t, 7, 1> {};
+  };
+
+  struct Control2 : public Register<decltype(Control2_t), Control2_t> {
+    struct ComparatorAOutput : public BitField<decltype(Control2_t), Control2_t, 0, 1> {};
+    struct EnableOutputFilter : public BitField<decltype(Control2_t), Control2_t, 1, 1> {};
+    struct TerminalMultiplexer : public BitField<decltype(Control2_t), Control2_t, 2, 5> {};
+    struct ShortTerminals : public BitField<decltype(Control2_t), Control2_t, 7, 1> {};
+  };
+
+  struct PortDisable : public Register<decltype(PortDisable_t), PortDisable_t> {
+    struct InputBuffersOfPortRegister : public BitField<decltype(PortDisable_t), PortDisable_t, 0, 8> {};
   };
 };
 

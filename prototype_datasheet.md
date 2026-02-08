@@ -44,7 +44,9 @@ In fact, the chip is hand-coded in the `controllers.hpp` header.
 <div class="device_template" id="TimerA">
 Device template name: <dfn class="cpp_name">TimerA</dfn>
 
-TimerA device info summary.
+TimerA device info summary. It is called `Timer0_A3` in the `msp430g2553.h` header.
+So, it could be TimerA3. But the User Guide talks about TimerA.
+That's the naming used here.
 
 <details>
 <summary>
@@ -53,7 +55,7 @@ Registers and sub-devices.
 
 <ul>
 <li class="register" id="TimerA.Control">
-Register type name: <dfn>Control</dfn>
+Register type name: <dfn>Control</dfn>. Width: <span class="width">16</span>.
 <details>
 <summary>
 Control register fields.
@@ -106,8 +108,8 @@ Control register fields.
 </details>
 </li>
 
-<li class="register" id="TimerA.TimerReg">
-Register type name: <dfn>TimerReg</dfn>
+<li class="register" id="TimerA.CounterRegister">
+Register type name: <dfn>CounterRegister</dfn>. Width: <span class="width">16</span>.
 </li>
 
 <li class="device_template" id="TimerA.CaptureCompareBlock">
@@ -115,7 +117,9 @@ Device template name: <dfn>CaptureCompareBlock</dfn>.
 
 TimerA can have 2-3 identical Capture/Compare blocks.
 (The TimerA devices have only 2 blocks in MSP430 models
-that have two TimerA devices, 0 and 1.)
+that have two TimerA devices, 0 and 1.
+<em>TODO: check in the User Guide if it is really true:
+the header defines two TimerA with 3 CapCom blocks for MSP430G2553.</em>)
 <details>
 <summary>
 Registers and subdevices of a Capture/Compare Block.
@@ -123,7 +127,7 @@ Registers and subdevices of a Capture/Compare Block.
 
 <ul>
 <li class="register" id="TimerA.CaptureCompareBlock.Control">
-Register type name: <dfn>CapComControl</dfn>
+Register type name: <dfn>CapComControl</dfn>. Width: <span class="width">16</span>.
 <details>
 <summary>
 Fields.
@@ -159,13 +163,22 @@ Register type name: <dfn>CapComReg</dfn>.
 </details>
 </li>
 
-<li class="register" id="TimerA.InterruptVector">
-Register type name: <dfn>InterruptVector</dfn>
+<li class="register" id="TimerA.InterruptVectorWord">
+Register type name: <dfn>InterruptVectorWord</dfn>. Width: <span class="width">16</span>.
+<em>TODO: check in the User Guide whether I got this one right.</em>
 <details>
 <summary>Fields.</summary>
 
 <ul>
-<li class="field"> <dfn>contents</dfn> <span class="offset">1</span> <span class="width">4</span> </li>
+<li class="field"> <dfn>contents</dfn> <span class="offset">1</span> <span class="width">4</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_INTERRUPTS</data></span>
+  <span class="value_option"><data value="1">CCR1_IFG</data></span>
+  <span class="value_option"><data value="2">CCR2_IFG</data></span>
+  <span class="value_option"><data value="5">TA_IFG</data></span>
+</details>
+</li>
 </ul>
 </details>
 
@@ -174,7 +187,7 @@ Register type name: <dfn>InterruptVector</dfn>
 </details>
 </div>
 
-One more top-level device, an 8-bit IO port:
+Digital IO device, an 8-bit IO port:
 
 <div class="device_template" id="PortIO8bit">
 Device template name: <dfn class="cpp_name">PortIO8bit</dfn>
@@ -372,7 +385,9 @@ Fields.
 
 <li class="field"> <dfn>invert_sample_hold</dfn> <span class="width">1</span>'@<span class="offset">8</span> </li>
 <li class="field"> <dfn>data_format</dfn> <span class="width">1</span>'@<span class="offset">9</span>
-<span class="comment">0 = binary, 1 = 2's complement</span>
+  <span class="value_option"><data value="0">BINARY</data> </span>
+  <span class="value_option"><data value="1">TWOs_COMPLEMENT</data> </span>
+  <span class="comment">0 = binary, 1 = 2's complement</span>
 </li>
 <li class="field"> <dfn>sample_hold_source</dfn> <span class="width">2</span>'@<span class="offset">10</span>
 <details>
@@ -419,4 +434,254 @@ Fields.
 </div>
 
 
+Basic Clock Module:
+
+<div class="device_template" id="ADC10">
+Device template name: <dfn class="cpp_name">BasicClockModule</dfn>
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+<li class="register" id="BasicClockModule.DCOClockFrequencyControl">
+Name: <dfn>DCOClockFrequencyControl</dfn>. Width: <span class="width">8</span>.
+5 bits for modulation, 3 bits for DCO select.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>Modulation</dfn> <span class="width">5</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>DCOSelect</dfn> <span class="width">3</span>'@<span class="offset">5</span> </li>
+</ul>
+</details>
+</li>
+
+<li class="register" id="BasicClockModule.Control1">
+Basic Clock System control: <dfn>Control1</dfn>. Width: <span class="width">8</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>Range</dfn> <span class="width">4</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>ACLKDivider</dfn> <span class="width">2</span>'@<span class="offset">4</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DIV_x1</data> </span>
+  <span class="value_option"><data value="1">DIV_x2</data> </span>
+  <span class="value_option"><data value="2">DIV_x4</data> </span>
+  <span class="value_option"><data value="3">DIV_x8</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>XTSelect</dfn> <span class="width">1</span>'@<span class="offset">6</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">LOW_FREQUENCY</data> </span>
+  <span class="value_option"><data value="1">HIGH_FREQUENCY</data> </span>
+</details>
+</li>
+<li class="field"> <dfn>XT2Off</dfn> <span class="width">1</span>'@<span class="offset">7</span>
+  <span class="comment">Enable XT2CLK</span>
+</li>
+</ul>
+</details>
+</li>
+
+<li class="register" id="BasicClockModule.Control2">
+Basic Clock System control: <dfn>Control2</dfn>. Width: <span class="width">8</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>SMCLKDivider</dfn> <span class="width">2</span>'@<span class="offset">0</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DIV_x1</data> </span>
+  <span class="value_option"><data value="1">DIV_x2</data> </span>
+  <span class="value_option"><data value="2">DIV_x4</data> </span>
+  <span class="value_option"><data value="3">DIV_x8</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>SMCLKSource</dfn> <span class="width">1</span>'@<span class="offset">2</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DCOCLK</data> </span>
+  <span class="value_option"><data value="1">XT2CLK_LFXTCLK</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>MCLKDivider</dfn> <span class="width">2</span>'@<span class="offset">3</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DIV_x1</data> </span>
+  <span class="value_option"><data value="1">DIV_x2</data> </span>
+  <span class="value_option"><data value="2">DIV_x4</data> </span>
+  <span class="value_option"><data value="3">DIV_x8</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>MCLKSource</dfn> <span class="width">2</span>'@<span class="offset">5</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DCOCLK</data> </span>
+  <span class="value_option"><data value="1">DCOCLK</data> </span>
+  <span class="value_option"><data value="2">XT2CLK_LFXTCLK</data> </span>
+  <span class="value_option"><data value="3">LFXTCLK</data> </span>
+</details>
+</li>
+</ul>
+
+</details>
+</li>
+
+<li class="register" id="BasicClockModule.Control3">
+Basic Clock System control: <dfn>Control3</dfn>. Width: <span class="width">8</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>LFXT_OscillatorFaultFlag</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+  <span class="comment">Low/high frequency oscillator fault flag</span>
+</li>
+<li class="field"> <dfn>XT_OscillatorFaultFlag</dfn> <span class="width">1</span>'@<span class="offset">1</span>
+  <span class="comment">High frequency oscillator 2 fault flag</span>
+</li>
+
+<li class="field"> <dfn>XIN_XOUT_Cap</dfn> <span class="width">2</span>'@<span class="offset">2</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">XCAP_0pF</data> </span>
+  <span class="value_option"><data value="1">XCAP_6pF</data> </span>
+  <span class="value_option"><data value="2">XCAP_10pF</data> </span>
+  <span class="value_option"><data value="3">XCAP_12pF5</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>LFXT1_Mode</dfn> <span class="width">2</span>'@<span class="offset">4</span>
+<span class="comment">(XTS = 0)</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NORMAL_OPERATION</data> </span>
+  <span class="value_option"><data value="1">Reserved</data> </span>
+  <span class="value_option"><data value="2">VLO</data> </span>
+  <span class="value_option"><data value="3">DIGITAL_INPUT_SIGNAL</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>XT2_Mode</dfn> <span class="width">2</span>'@<span class="offset">6</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">MODE_0p4_1_MHz</data> </span>
+  <span class="value_option"><data value="1">MODE_1_4_MHz</data> </span>
+  <span class="value_option"><data value="2">MODE_2_16_MHz</data> </span>
+  <span class="value_option"><data value="3">DIGITAL_INPUT_SIGNAL</data> </span>
+</details>
+</li>
+
+</ul>
+</details>
+</li>
+
+</ul>
+</details>
+</div>
+
+Comparator A:
+
+<div class="device_template" id="ComparatorA">
+Device template name: <dfn class="cpp_name">ComparatorA</dfn>
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+<li class="register" id="ComparatorA.Control1">
+Name: <dfn>Control1</dfn>. Width: <span class="width">8</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>InterruptFlag</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>InterruptEnable</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
+<li class="field"> <dfn>EdgeSelect</dfn> <span class="width">1</span>'@<span class="offset">2</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">RISING</data> </span>
+  <span class="value_option"><data value="1">FALLING</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>Enable</dfn> <span class="width">1</span>'@<span class="offset">3</span> </li>
+
+<li class="field"> <dfn>InternalReference</dfn> <span class="width">2</span>'@<span class="offset">4</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">OFF</data> </span>
+  <span class="value_option"><data value="1">REF_0p25Vcc</data> </span>
+  <span class="value_option"><data value="2">REF_0p5Vcc</data> </span>
+  <span class="value_option"><data value="3">REF_Vt</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>InternalReferenceEnable</dfn> <span class="width">1</span>'@<span class="offset">6</span> </li>
+<li class="field"> <dfn>ExchangeInputs</dfn> <span class="width">1</span>'@<span class="offset">7</span> </li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="ComparatorA.Control2">
+Name: <dfn>Control2</dfn>. Width: <span class="width">8</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>ComparatorAOutput</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>EnableOutputFilter</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
+<li class="field"> <dfn>TerminalMultiplexer</dfn> <span class="width">5</span>'@<span class="offset">2</span> </li>
+<li class="field"> <dfn>ShortTerminals</dfn> <span class="width">1</span>'@<span class="offset">7</span> </li>
+</ul>
+</details>
+</li>
+
+<li class="register" id="ComparatorA.PortDisable">
+Name: <dfn>PortDisable</dfn>. Width: <span class="width">8</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>InputBuffersOfPortRegister</dfn> <span class="width">8</span>'@<span class="offset">0</span> </li>
+</ul>
+</details>
+</li>
+
+</ul>
+</details>
+</div>
+
+TODO:
+* Flash Memory.
+* Check on Digital IO more.
+* USCI.
+* Watchdog timer.
+* Calibration data.
 
