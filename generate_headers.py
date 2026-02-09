@@ -92,7 +92,9 @@ class RegField:
     def to_cpp(self, reg_ref, indentation=0):
         contents = ""
         if self.comment:
-            contents += f"/// {self.comment}\n"
+            contents += indent(self.comment, "/// ")
+            if self.comment[-1] != "\n":
+                contents += "\n"
 
         if self.option_values:
             opts = "\n  " + ",\n  ".join(opt.to_cpp() for opt in self.option_values)
@@ -202,11 +204,11 @@ class SubDevice(Device):
         return cpp
 
 def parse_field(bs_elem):
-    name = bs_elem.select_one(":scope dfn").text.strip()
-    offset = int(bs_elem.select_one(":scope span.offset").text.strip())
-    width = int(bs_elem.select_one(":scope span.width").text.strip())
+    name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
+    offset = int(bs_elem.select_one(":scope span.offset:not(:scope details span.offset)").text.strip())
+    width = int(bs_elem.select_one(":scope span.width:not(:scope details span.width)").text.strip())
     #info = {"offset": offset, "width": width}
-    comment = bs_elem.select_one(":scope span.comment")
+    comment = bs_elem.select_one(":scope span.comment:not(:scope details span.comment)")
     if comment is not None:
         comment = comment.text.strip()
 
@@ -216,22 +218,22 @@ def parse_field(bs_elem):
         opt_name = opt.text.strip()
         value = int(opt["value"])
         assert opt_name not in opt_dict
-        comment = ""
-        opt_dict[opt_name] = (value, comment)
+        opt_comment = ""
+        opt_dict[opt_name] = (value, opt_comment)
 
     # new options with comments
     for opt in bs_elem.select(":scope > details > span.value_option"):
         opt_data = opt.select_one(":scope > data")
         opt_name = opt_data.text.strip()
         value = int(opt_data["value"])
-        comment = opt.select_one(":scope > span.comment")
-        if comment is not None:
-            comment = comment.text.strip()
-        opt_dict[opt_name] = (value, comment)
+        opt_comment = opt.select_one(":scope > span.comment")
+        if opt_comment is not None:
+            opt_comment = opt_comment.text.strip()
+        opt_dict[opt_name] = (value, opt_comment)
 
     opt_values = []
-    for opt_name, (value, comment) in sorted(opt_dict.items(), key=lambda it: it[1]):
-        opt_values.append(RegFieldOptValue(opt_name, value, comment))
+    for opt_name, (value, opt_comment) in sorted(opt_dict.items(), key=lambda it: it[1]):
+        opt_values.append(RegFieldOptValue(opt_name, value, opt_comment))
 
     field = RegField(name, offset, width, opt_values, comment)
     return name, field

@@ -180,7 +180,6 @@ struct ADC10 {
     struct ref_burst_mode : public BitField<decltype(Control0_t), Control0_t, 8, 1> {};
     struct enable_output_of_ref : public BitField<decltype(Control0_t), Control0_t, 9, 1> {};
     struct sampling_rate : public BitField<decltype(Control0_t), Control0_t, 10, 1> {};
-    /// 64 x ADC10 clocks
     struct sample_hold_select : public BitField<decltype(Control0_t), Control0_t, 11, 2> {
       constexpr static typename sample_hold_select::OPT
         SH_x4{0} /** 4 x ADC10 clocks */,
@@ -188,7 +187,6 @@ struct ADC10 {
         SH_x16{2} /** 16 x ADC10 clocks */,
         SH_x64{3} /** 64 x ADC10 clocks */;
     };
-    /// VR+ = VEREF+ and VR- = VREF-/VEREF-
     struct reference_select : public BitField<decltype(Control0_t), Control0_t, 13, 3> {
       constexpr static typename reference_select::OPT
         REF_0{0} /** VR+ = AVCC and VR- = AVSS */,
@@ -331,6 +329,7 @@ struct BasicClockModule {
         XCAP_10pF{2},
         XCAP_12pF5{3};
     };
+    /// (XTS = 0)
     struct LFXT1_Mode : public BitField<decltype(Control3_t), Control3_t, 4, 2> {
       constexpr static typename LFXT1_Mode::OPT
         NORMAL_OPERATION{0},
@@ -383,6 +382,50 @@ struct ComparatorA {
 
   struct PortDisable : public Register<decltype(PortDisable_t), PortDisable_t> {
     struct InputBuffersOfPortRegister : public BitField<decltype(PortDisable_t), PortDisable_t, 0, 8> {};
+  };
+};
+
+template<volatile unsigned int& Control1_t,
+         volatile unsigned int& Control2_t>
+struct FlashMemoryModule {
+  FlashMemoryModule() = delete;
+
+  struct Control1 : public Register<decltype(Control1_t), Control1_t> {
+    struct Reserved0 : public BitField<decltype(Control1_t), Control1_t, 0, 1> {};
+    struct Erase_MassErase : public BitField<decltype(Control1_t), Control1_t, 1, 2> {
+      constexpr static typename Erase_MassErase::OPT
+        NO_ERASE{0},
+        SEGMENT_ERASE{1},
+        BANK_ERASE{2} /** erase one bank */,
+        MASS_ERASE{3} /** erase all flash memory banks */;
+    };
+    struct Reserved3 : public BitField<decltype(Control1_t), Control1_t, 3, 2> {};
+    /// If this bit is set, the program time is shortened. The programming quality has to be checked by marginal read modes.
+    struct SmartWrite : public BitField<decltype(Control1_t), Control1_t, 5, 1> {};
+    struct Write_BlockWrite : public BitField<decltype(Control1_t), Control1_t, 6, 2> {
+      constexpr static typename Write_BlockWrite::OPT
+        Reserved{0},
+        BYTE_OR_WORD_WRITE{1},
+        LONG_WORD_WRITE{2},
+        LONG_WORD_BLOCK_WRITE{3};
+    };
+    /// Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.
+    struct ControlPassword : public BitField<decltype(Control1_t), Control1_t, 8, 8> {};
+  };
+
+  struct Control2 : public Register<decltype(Control2_t), Control2_t> {
+    /// Divide Flash clock by 1 to 64 using these (FN0-FN5) bits as:
+    /// 32\*FN5 + 16\*FN4 + 8\*FN3 + 4\*FN2 + 2\*FN1 + FN0 + 1.
+    /// So, it is just the field + 1.
+    struct DivideClock : public BitField<decltype(Control2_t), Control2_t, 0, 6> {};
+    struct ClockSelect : public BitField<decltype(Control2_t), Control2_t, 6, 2> {
+      constexpr static typename ClockSelect::OPT
+        ACLK{0},
+        MCLK{1},
+        SMCLK{3};
+    };
+    /// Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.
+    struct ControlPassword : public BitField<decltype(Control2_t), Control2_t, 8, 8> {};
   };
 };
 
