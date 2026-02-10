@@ -1548,6 +1548,7 @@ i.e. the same as for USCI A. Which cannot be true.
 One should SPI and another one is I2C.
 I guess, <code>SyncMode=ASYNCHRONOUS</code> and <code>USCIMode=I2C</code> selects I2C?
 </span>
+
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">ASYNCHRONOUS</data> </span>
@@ -1559,6 +1560,7 @@ I guess, <code>SyncMode=ASYNCHRONOUS</code> and <code>USCIMode=I2C</code> select
 <span class="comment">
 <code>UCMODE0</code> and <code>UCMODE1</code>
 </span>
+
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">SYNC_3pin_SPI</data> </span>
@@ -1578,6 +1580,7 @@ I guess, <code>SyncMode=ASYNCHRONOUS</code> and <code>USCIMode=I2C</code> select
 In I2C mode: when a master loses arbitration in a multi-master environment (<code>UCMM = 1</code>),
 the <code>UCMST</code> bit is automatically cleared and the module acts as slave.
 </span>
+
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">SLAVE_MODE</data> </span>
@@ -1591,6 +1594,7 @@ the <code>UCMST</code> bit is automatically cleared and the module acts as slave
 In SPI mode: selects 7-bit or 8-bit character length.
 In I2C: reserved, alwasy reads as 0.
 </span>
+
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">CHAR_8bit</data> </span>
@@ -1603,6 +1607,7 @@ In I2C: reserved, alwasy reads as 0.
 In SPI mode: <code>UCMSB</code>, controls the direction of the receive and transmit shift register.
 In I2C mode: <code>UCMM</code>, selects single-master or multi-master environment.
 </span>
+
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">LSB_FIRST_or_SINGLE_MASTER</data>
@@ -1617,6 +1622,7 @@ In I2C mode: <code>UCMM</code>, selects single-master or multi-master environmen
 In SPI (Sync) mode: <code>UCCKPL</code> selects clock polarity.
 In I2C mode: address slave with 7-bit or 10-bit address.
 </span>
+
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">InactiveStateIsLow_or_Address7bit</data> </span>
@@ -1631,12 +1637,324 @@ data is changed of the first UCLK edge and captured on the following edge,
 or is captured on the first edge and changed on the following.
 In I2C mode: <code>UCA10</code> selects own address is 7-bit or 10-bit address.
 </span>
+
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">DataChangeCapture_or_OwnAddress7bit</data> </span>
   <span class="value_option"><data value="1">DataCaptureChange_or_OwnAddress10bit</data> </span>
 </details>
 </li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="USCI_B.Control1">
+Name: <dfn>Control1</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCBxCTL1</code>
+</span>
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>SoftwareReset</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+  <span class="comment">Valid in both modes.
+  When enabled (=1), the USCI logic is held in reset state.
+  When disabled (=0), USCI released for operation.
+  </span>
+</li>
+
+<li class="field"> <dfn>TransmitStartCondition</dfn> <span class="width">1</span>'@<span class="offset">1</span>
+<span class="comment">
+  <code>UCTXSTT</code> Only I2C mode.
+  Transmit START condition in master mode, ignored in slave mode.
+  In master receiver mode, a repeated START condition is preceded by a NACK.
+  <code>UCTXSTT</code> is automatically cleared after START comdition
+  and address information is transmitted.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DO_NOT_GENERATE_START_CONDITION</data> </span>
+  <span class="value_option"><data value="1">GENERATE_START_CONDITION</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>TransmitStopCondition</dfn> <span class="width">1</span>'@<span class="offset">2</span>
+<span class="comment">
+  <code>UCTXSTP</code> Only in I2C mode.
+  Transmit STOP condition in master mode. Ignored in slave mode.
+  In master receiver mode, the STOP condition is preceded by a NACK.
+  <code>UCTXSTP</code> is automatically cleared after STOP is generated.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_STOP_GENERATED</data> </span>
+  <span class="value_option"><data value="1">GENERATE_STOP</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>TransmitNACK</dfn> <span class="width">1</span>'@<span class="offset">3</span>
+<span class="comment">
+  <code>UCTXNACK</code> Only I2C mode.
+  Transmit a NACK. <code>UCTXNACK</code> is automatically cleared after a NACK is transmitted.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">ACKNOWLEDGE_NORMALLY</data> </span>
+  <span class="value_option"><data value="1">GENERATE_NACK</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>TransmitterOrReceiver</dfn> <span class="width">1</span>'@<span class="offset">4</span>
+<span class="comment">
+  <code>UCTR</code> Only in I2C.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">RECEIVER</data> </span>
+  <span class="value_option"><data value="1">TRANSMITTER</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>Reserved</dfn> <span class="width">1</span>'@<span class="offset">5</span>
+<span class="comment">
+  Always reads 0.
+</span>
+</li>
+
+<li class="field"> <dfn>ClockSource</dfn> <span class="width">2</span>'@<span class="offset">6</span>
+<span class="comment">
+  <code>UCSSELx</code> Valid in both SPI and I2C modes.
+  USCI clock source select.
+  In SPI mode: select the <code>BRCLK</code> source clock in master mode,
+  <code>UCxCLK</code> is always used in slave mode.
+  In I2C mode: select <code>BRCLK</code> source clock.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">Reserved_or_UCLKI</data> </span>
+  <span class="value_option"><data value="1">ACLK</data> </span>
+  <span class="value_option"><data value="2">SMCLK</data> </span>
+  <span class="value_option"><data value="3">SMCLK</data> </span>
+</details>
+</li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="USCI_B.BaudRate0">
+Name: <dfn>BaudRate0</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCBxBR0</code>
+Low byte of clock prescaler setting of the baud-rate generator.
+The 16-bit value of <code>BaudRate0 + BaudRate1 \* 256</code>
+forms the prescaler value <code>UCBRx</code>.
+<code>f_bitclock = f_brclk / UCBRx</code>
+<code>UCBRx = 0 => f_bitclock = f_brclk</code>
+</span>
+</li>
+
+<li class="register" id="USCI_B.BaudRate1">
+Name: <dfn>BaudRate1</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCBxBR1</code>
+High byte of clock prescaler setting of the baud-rate generator.
+The 16-bit value of <code>BaudRate0 + BaudRate1 \* 256</code>
+forms the prescaler value <code>UCBRx</code>.
+<code>f_bitclock = f_brclk / UCBRx</code>
+<code>UCBRx = 0 => f_bitclock = f_brclk</code>
+</span>
+</li>
+
+<li class="register" id="USCI_B.I2CInterruptEnable">
+Name: <dfn>I2CInterruptEnable</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCBxIE</code> or <code>UCBxI2CIE</code> in the <code>msp430g2552.h</code> header.
+</span>
+<details>
+  <summary>Bit fields in I2C mode.</summary>
+
+<ul>
+<li class="field"> <dfn>ReceiveIE</dfn> <span class="width">1</span>'@<span class="offset">0</span> <span class="comment"> <code>UCRXIE</code> </span> </li>
+<li class="field"> <dfn>TransmitIE</dfn> <span class="width">1</span>'@<span class="offset">1</span> <span class="comment"> <code>UCTXIE</code> </span> </li>
+<li class="field"> <dfn>StartConditionIE</dfn> <span class="width">1</span>'@<span class="offset">2</span> <span class="comment"> <code>UCSTTIE</code> </span> </li>
+<li class="field"> <dfn>StopConditionIE</dfn> <span class="width">1</span>'@<span class="offset">3</span> <span class="comment"> <code>UCSTPIE</code> </span> </li>
+<li class="field"> <dfn>ArbitrationLostIE</dfn> <span class="width">1</span>'@<span class="offset">4</span> <span class="comment"> <code>UCALIE</code> </span> </li>
+<li class="field"> <dfn>NotAcknowledgeIE</dfn> <span class="width">1</span>'@<span class="offset">5</span> <span class="comment"> <code>UCNACKIE</code> </span> </li>
+<li class="field"> <dfn>Reserved</dfn> <span class="width">2</span>'@<span class="offset">6</span> <span class="comment"> <code>UCNACKIE</code> </span> </li>
+</ul>
+</details>
+</li>
+
+<li class="register" id="USCI_B.Status">
+Name: <dfn>Status</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCBxSTAT</code>
+Can be modified only when <code>UCSWRST = 1</code>.
+Most bits are valid only for I2C.
+The others are common to I2C and SPI modes.
+</span>
+<details>
+  <summary>Bit fields.</summary>
+
+<ul>
+<li class="field"> <dfn>Busy</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+  <span class="comment">
+  <code>UCBUSY</code> only SPI.
+  Indicated if a transmit or receive operation is in progress.
+  </span>
+</li>
+
+<li class="field"> <dfn>Reserved1</dfn> <span class="width">3</span>'@<span class="offset">1</span>
+</li>
+
+<li class="field"> <dfn>I2CBusBusy</dfn> <span class="width">1</span>'@<span class="offset">4</span>
+  <span class="comment">
+  <code>UCBBUSY</code> only in I2C.
+  </span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">BUS_INACTIVE</data> </span>
+  <span class="value_option"><data value="1">BUS_BUSY</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ErrorFlagOverrun_or_GeneralCallAddressReceived</dfn> <span class="width">1</span>'@<span class="offset">5</span>
+<span class="comment">
+  <code>UCOE</code> overrun flag in SPI.
+  The bit is set when a character is transfered into <code>UCxRXBUF</code> before the previous character was read.
+  Cleared when <code>UCxRXBUF</code> is read, and must not be cleared by software.
+  Otherwise, it does not function correctly.
+  <code>UCGC</code> general call address received in I2C.
+  It is cleared automatically when a START condition is received.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_OVERRUN_ERROR_or_NO_GENERAL_CALL_ADDRESS_RECEIVED</data> </span>
+  <span class="value_option"><data value="1">OVERRUN_OCCURED_or_GENERAL_CALL_ADDRESS_RECEIVED</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ErrorFlagFraming_or_SCLIsLow</dfn> <span class="width">1</span>'@<span class="offset">6</span>
+<span class="comment">
+  <code>UCFE</code> framing error flag in SPI.
+  This bit indicates a bus conflict in 4-wire master mode.
+  <code>UCFE</code> is not used in 3-wire master or any slave mode.
+  <code>UCSCLLOW</code> in I2C: SCL is held low.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_ERROR_or_SCL_NOT_LOW</data> </span>
+  <span class="value_option"><data value="1">BUS_CONFLICT_OCCURED_or_SCL_IS_LOW</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ListenEnable</dfn> <span class="width">1</span>'@<span class="offset">7</span>
+  <span class="comment">
+  <code>UCLISTEN</code> only SPI mode.
+  Selects loopback mode.
+  When enabled (=1) the transmitter output is internally fed back to the receiver.
+  </span>
+</li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="USCI_B.RXBuffer">
+Name: <dfn>RXBuffer</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCBxRXBUF</code>
+The receive-data buffer is user-accessible and contains the last received character from the receive shift register.
+Reading <code>UCBxRXBUF</code> resets the receive-error bits,
+the Address/Idle <code>UCADDR/UCIDLE</code> bit, and the <code>UCRXIFG</code> (which I do not find in the header).
+In 7-bit data mode, <code>UCBxRXBUF</code> is LSB justified and the MSB is always reset.
+</span>
+</li>
+
+<li class="register" id="USCI_B.TXBuffer">
+Name: <dfn>TXBuffer</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCBxTXBUF</code>
+The transmit-data buffer is user-accessible and contains the data waiting to be moved into the transmit shift register
+and transmitted on <code>UCAxTXD</code>.
+Writing to <code>UCBxTXBUF</code> clears <code>UCTXIFG</code> (which I do not find in the header).
+The MSB of <code>UCBxTXBUF</code> is not used for 7-bit data and is reset.
+</span>
+</li>
+
+<li class="register" id="USCI_B.I2COwnAddress">
+Name: <dfn>I2COwnAddress</dfn>. Width: <span class="width">16</span>.
+<span class="comment">
+<code>UCBxI2COA</code>
+Can be modified only when <code>UCSWRST = 1</code>.
+</span>
+
+<details>
+<summary>Bit fields.</summary>
+<ul>
+
+<li class="field"> <dfn>OwnAddress</dfn> <span class="width">10</span>'@<span class="offset">0</span>
+<span class="comment">
+  <code>I2COAx</code> I2C own address, the local address of
+  the <code>USCI_Bx</code> I2C controller.
+  The address is right justified.
+  In 7-bit addressing mode, bit 6 is the MSB and bits 9-7 are ignored.
+  In 10-bit addressing mode, bit 9 is MSB.
+</span>
+</li>
+
+<li class="field"> <dfn>Reserved</dfn> <span class="width">5</span>'@<span class="offset">10</span> </li>
+
+<li class="field"> <dfn>GeneralCallResponseEnable</dfn> <span class="width">1</span>'@<span class="offset">15</span>
+<span class="comment">
+  <code>UCGCEN</code>
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DO_NOT_RESPOND_TO_GENERAL_CALL</data> </span>
+  <span class="value_option"><data value="1">RESPOND_TO_GENERAL_CALL</data> </span>
+</details>
+</li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="USCI_B.I2CSlaveAddress">
+Name: <dfn>I2CSlaveAddress</dfn>. Width: <span class="width">16</span>.
+<span class="comment">
+<code>UCBxI2CSA</code>
+Can be modified only when <code>UCSWRST = 1</code>.
+</span>
+
+<details>
+<summary>Bit fields.</summary>
+<ul>
+
+<li class="field"> <dfn>SlaveAddress</dfn> <span class="width">10</span>'@<span class="offset">0</span>
+<span class="comment">
+  <code>I2CSAx</code> I2C slave address of the external device to be addressed by
+  the <code>USCI_Bx</code> module. It is only used in master mode.
+  The address is right justified.
+  In 7-bit slave addressing mode, bit 6 is the MSB and bits 9-7 are ignored.
+  In 10-bit slave addressing mode, bit 9 is MSB.
+</span>
+</li>
+
+<li class="field"> <dfn>Reserved</dfn> <span class="width">6</span>'@<span class="offset">10</span> </li>
 
 </ul>
 </details>
@@ -1653,6 +1971,9 @@ mapping as A.
 <li>I also do not find the <code>UCAxIE</code> (Interrup Enable) and
 <code>UCAxIFG</code> (Interrupt Flag) registers in the
 <code>msp430g2553.h</code> header.</li>
+<li>Neither regs <code>UCBxIE</code> and <code>UCBxIFG</code> and
+<code>UCBxIV</code>?</li>
+<li>Where is <code>UCSWRST</code>?</li>
 </ul></li>
 <li>Watchdog timer.</li>
 <li>Calibration data.</li>

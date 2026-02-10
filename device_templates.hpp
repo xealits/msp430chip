@@ -792,7 +792,16 @@ struct USCI_A {
   };
 };
 
-template<volatile unsigned char& Control0_t>
+template<volatile unsigned char& Control0_t,
+         volatile unsigned char& Control1_t,
+         volatile unsigned char& BaudRate0_t,
+         volatile unsigned char& BaudRate1_t,
+         volatile unsigned char& I2CInterruptEnable_t,
+         volatile unsigned char& Status_t,
+         volatile unsigned char& RXBuffer_t,
+         volatile unsigned char& TXBuffer_t,
+         volatile unsigned int& I2COwnAddress_t,
+         volatile unsigned int& I2CSlaveAddress_t>
 struct USCI_B {
   USCI_B() = delete;
 
@@ -855,6 +864,146 @@ struct USCI_B {
         DataChangeCapture_or_OwnAddress7bit{0},
         DataCaptureChange_or_OwnAddress10bit{1};
     };
+  };
+
+  struct Control1 : public Register<decltype(Control1_t), Control1_t> {
+    /// Valid in both modes.
+    ///   When enabled (=1), the USCI logic is held in reset state.
+    ///   When disabled (=0), USCI released for operation.
+    struct SoftwareReset : public BitField<decltype(Control1_t), Control1_t, 0, 1> {};
+    /// UCTXSTT Only I2C mode.
+    ///   Transmit START condition in master mode, ignored in slave mode.
+    ///   In master receiver mode, a repeated START condition is preceded by a NACK.
+    ///   UCTXSTT is automatically cleared after START comdition
+    ///   and address information is transmitted.
+    struct TransmitStartCondition : public BitField<decltype(Control1_t), Control1_t, 1, 1> {
+      constexpr static typename TransmitStartCondition::OPT
+        DO_NOT_GENERATE_START_CONDITION{0},
+        GENERATE_START_CONDITION{1};
+    };
+    /// UCTXSTP Only in I2C mode.
+    ///   Transmit STOP condition in master mode. Ignored in slave mode.
+    ///   In master receiver mode, the STOP condition is preceded by a NACK.
+    ///   UCTXSTP is automatically cleared after STOP is generated.
+    struct TransmitStopCondition : public BitField<decltype(Control1_t), Control1_t, 2, 1> {
+      constexpr static typename TransmitStopCondition::OPT
+        NO_STOP_GENERATED{0},
+        GENERATE_STOP{1};
+    };
+    /// UCTXNACK Only I2C mode.
+    ///   Transmit a NACK. UCTXNACK is automatically cleared after a NACK is transmitted.
+    struct TransmitNACK : public BitField<decltype(Control1_t), Control1_t, 3, 1> {
+      constexpr static typename TransmitNACK::OPT
+        ACKNOWLEDGE_NORMALLY{0},
+        GENERATE_NACK{1};
+    };
+    /// UCTR Only in I2C.
+    struct TransmitterOrReceiver : public BitField<decltype(Control1_t), Control1_t, 4, 1> {
+      constexpr static typename TransmitterOrReceiver::OPT
+        RECEIVER{0},
+        TRANSMITTER{1};
+    };
+    /// Always reads 0.
+    struct Reserved : public BitField<decltype(Control1_t), Control1_t, 5, 1> {};
+    /// UCSSELx Valid in both SPI and I2C modes.
+    ///   USCI clock source select.
+    ///   In SPI mode: select the BRCLK source clock in master mode,
+    ///   UCxCLK is always used in slave mode.
+    ///   In I2C mode: select BRCLK source clock.
+    struct ClockSource : public BitField<decltype(Control1_t), Control1_t, 6, 2> {
+      constexpr static typename ClockSource::OPT
+        Reserved_or_UCLKI{0},
+        ACLK{1},
+        SMCLK{3};
+    };
+  };
+
+  struct BaudRate0 : public Register<decltype(BaudRate0_t), BaudRate0_t> {};
+
+  struct BaudRate1 : public Register<decltype(BaudRate1_t), BaudRate1_t> {};
+
+  struct I2CInterruptEnable : public Register<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t> {
+    /// UCRXIE
+    struct ReceiveIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 0, 1> {};
+    /// UCTXIE
+    struct TransmitIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 1, 1> {};
+    /// UCSTTIE
+    struct StartConditionIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 2, 1> {};
+    /// UCSTPIE
+    struct StopConditionIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 3, 1> {};
+    /// UCALIE
+    struct ArbitrationLostIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 4, 1> {};
+    /// UCNACKIE
+    struct NotAcknowledgeIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 5, 1> {};
+    /// UCNACKIE
+    struct Reserved : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 6, 2> {};
+  };
+
+  struct Status : public Register<decltype(Status_t), Status_t> {
+    /// UCBUSY only SPI.
+    ///   Indicated if a transmit or receive operation is in progress.
+    struct Busy : public BitField<decltype(Status_t), Status_t, 0, 1> {};
+    struct Reserved1 : public BitField<decltype(Status_t), Status_t, 1, 3> {};
+    /// UCBBUSY only in I2C.
+    struct I2CBusBusy : public BitField<decltype(Status_t), Status_t, 4, 1> {
+      constexpr static typename I2CBusBusy::OPT
+        BUS_INACTIVE{0},
+        BUS_BUSY{1};
+    };
+    /// UCOE overrun flag in SPI.
+    ///   The bit is set when a character is transfered into UCxRXBUF before the previous character was read.
+    ///   Cleared when UCxRXBUF is read, and must not be cleared by software.
+    ///   Otherwise, it does not function correctly.
+    ///   UCGC general call address received in I2C.
+    ///   It is cleared automatically when a START condition is received.
+    struct ErrorFlagOverrun_or_GeneralCallAddressReceived : public BitField<decltype(Status_t), Status_t, 5, 1> {
+      constexpr static typename ErrorFlagOverrun_or_GeneralCallAddressReceived::OPT
+        NO_OVERRUN_ERROR_or_NO_GENERAL_CALL_ADDRESS_RECEIVED{0},
+        OVERRUN_OCCURED_or_GENERAL_CALL_ADDRESS_RECEIVED{1};
+    };
+    /// UCFE framing error flag in SPI.
+    ///   This bit indicates a bus conflict in 4-wire master mode.
+    ///   UCFE is not used in 3-wire master or any slave mode.
+    ///   UCSCLLOW in I2C: SCL is held low.
+    struct ErrorFlagFraming_or_SCLIsLow : public BitField<decltype(Status_t), Status_t, 6, 1> {
+      constexpr static typename ErrorFlagFraming_or_SCLIsLow::OPT
+        NO_ERROR_or_SCL_NOT_LOW{0},
+        BUS_CONFLICT_OCCURED_or_SCL_IS_LOW{1};
+    };
+    /// UCLISTEN only SPI mode.
+    ///   Selects loopback mode.
+    ///   When enabled (=1) the transmitter output is internally fed back to the receiver.
+    struct ListenEnable : public BitField<decltype(Status_t), Status_t, 7, 1> {};
+  };
+
+  struct RXBuffer : public Register<decltype(RXBuffer_t), RXBuffer_t> {};
+
+  struct TXBuffer : public Register<decltype(TXBuffer_t), TXBuffer_t> {};
+
+  struct I2COwnAddress : public Register<decltype(I2COwnAddress_t), I2COwnAddress_t> {
+    /// I2COAx I2C own address, the local address of
+    ///   the USCI_Bx I2C controller.
+    ///   The address is right justified.
+    ///   In 7-bit addressing mode, bit 6 is the MSB and bits 9-7 are ignored.
+    ///   In 10-bit addressing mode, bit 9 is MSB.
+    struct OwnAddress : public BitField<decltype(I2COwnAddress_t), I2COwnAddress_t, 0, 10> {};
+    struct Reserved : public BitField<decltype(I2COwnAddress_t), I2COwnAddress_t, 10, 5> {};
+    /// UCGCEN
+    struct GeneralCallResponseEnable : public BitField<decltype(I2COwnAddress_t), I2COwnAddress_t, 15, 1> {
+      constexpr static typename GeneralCallResponseEnable::OPT
+        DO_NOT_RESPOND_TO_GENERAL_CALL{0},
+        RESPOND_TO_GENERAL_CALL{1};
+    };
+  };
+
+  struct I2CSlaveAddress : public Register<decltype(I2CSlaveAddress_t), I2CSlaveAddress_t> {
+    /// I2CSAx I2C slave address of the external device to be addressed by
+    ///   the USCI_Bx module. It is only used in master mode.
+    ///   The address is right justified.
+    ///   In 7-bit slave addressing mode, bit 6 is the MSB and bits 9-7 are ignored.
+    ///   In 10-bit slave addressing mode, bit 9 is MSB.
+    struct SlaveAddress : public BitField<decltype(I2CSlaveAddress_t), I2CSlaveAddress_t, 0, 10> {};
+    struct Reserved : public BitField<decltype(I2CSlaveAddress_t), I2CSlaveAddress_t, 10, 6> {};
   };
 };
 
