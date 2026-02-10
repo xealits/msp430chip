@@ -40,6 +40,8 @@ namespace MSP430G2553 {
     using Port3 = regmaps::PortIO8bit<P3IN, P3OUT, P3DIR,
                                     P3SEL, P3SEL2, P3REN>;
 
+    using FlashMemoryModule = regmaps::FlashMemoryModule<FCTL1, FCTL2, FCTL3>;
+
     /// Special Function Registers
     namespace SFRs {
         struct InterruptEnable1 : public Register<decltype(IE1), IE1> {

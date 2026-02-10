@@ -386,7 +386,8 @@ struct ComparatorA {
 };
 
 template<volatile unsigned int& Control1_t,
-         volatile unsigned int& Control2_t>
+         volatile unsigned int& Control2_t,
+         volatile unsigned int& Control3_t>
 struct FlashMemoryModule {
   FlashMemoryModule() = delete;
 
@@ -426,6 +427,101 @@ struct FlashMemoryModule {
     };
     /// Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.
     struct ControlPassword : public BitField<decltype(Control2_t), Control2_t, 8, 8> {};
+  };
+
+  struct Control3 : public Register<decltype(Control3_t), Control3_t> {
+    struct Busy : public BitField<decltype(Control3_t), Control3_t, 0, 1> {};
+    struct FlashKeyViolationFlag : public BitField<decltype(Control3_t), Control3_t, 1, 1> {};
+    struct FlashAccessViolationFlag : public BitField<decltype(Control3_t), Control3_t, 2, 1> {};
+    /// for segment write
+    struct WaitFlag : public BitField<decltype(Control3_t), Control3_t, 3, 1> {};
+    /// locked = read only
+    struct LockBit : public BitField<decltype(Control3_t), Control3_t, 4, 1> {};
+    struct FlashEmergencyExit : public BitField<decltype(Control3_t), Control3_t, 5, 1> {};
+    /// locked = read only
+    struct LockBitSegmentA : public BitField<decltype(Control3_t), Control3_t, 6, 1> {};
+    /// last program or erase failed
+    struct Fail : public BitField<decltype(Control3_t), Control3_t, 7, 1> {};
+    /// Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.
+    struct ControlPassword : public BitField<decltype(Control3_t), Control3_t, 8, 8> {};
+  };
+};
+
+template<volatile unsigned int& Control1_t,
+         volatile unsigned int& Control2_t,
+         volatile unsigned int& Control3_t,
+         volatile unsigned int& Control4_t>
+struct FlashMemoryModule4 {
+  FlashMemoryModule4() = delete;
+
+  struct Control1 : public Register<decltype(Control1_t), Control1_t> {
+    struct Reserved0 : public BitField<decltype(Control1_t), Control1_t, 0, 1> {};
+    struct Erase_MassErase : public BitField<decltype(Control1_t), Control1_t, 1, 2> {
+      constexpr static typename Erase_MassErase::OPT
+        NO_ERASE{0},
+        SEGMENT_ERASE{1},
+        BANK_ERASE{2} /** erase one bank */,
+        MASS_ERASE{3} /** erase all flash memory banks */;
+    };
+    struct Reserved3 : public BitField<decltype(Control1_t), Control1_t, 3, 2> {};
+    /// If this bit is set, the program time is shortened. The programming quality has to be checked by marginal read modes.
+    struct SmartWrite : public BitField<decltype(Control1_t), Control1_t, 5, 1> {};
+    struct Write_BlockWrite : public BitField<decltype(Control1_t), Control1_t, 6, 2> {
+      constexpr static typename Write_BlockWrite::OPT
+        Reserved{0},
+        BYTE_OR_WORD_WRITE{1},
+        LONG_WORD_WRITE{2},
+        LONG_WORD_BLOCK_WRITE{3};
+    };
+    /// Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.
+    struct ControlPassword : public BitField<decltype(Control1_t), Control1_t, 8, 8> {};
+  };
+
+  struct Control2 : public Register<decltype(Control2_t), Control2_t> {
+    /// Divide Flash clock by 1 to 64 using these (FN0-FN5) bits as:
+    /// 32\*FN5 + 16\*FN4 + 8\*FN3 + 4\*FN2 + 2\*FN1 + FN0 + 1.
+    /// So, it is just the field + 1.
+    struct DivideClock : public BitField<decltype(Control2_t), Control2_t, 0, 6> {};
+    struct ClockSelect : public BitField<decltype(Control2_t), Control2_t, 6, 2> {
+      constexpr static typename ClockSelect::OPT
+        ACLK{0},
+        MCLK{1},
+        SMCLK{3};
+    };
+    /// Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.
+    struct ControlPassword : public BitField<decltype(Control2_t), Control2_t, 8, 8> {};
+  };
+
+  struct Control3 : public Register<decltype(Control3_t), Control3_t> {
+    struct Busy : public BitField<decltype(Control3_t), Control3_t, 0, 1> {};
+    struct FlashKeyViolationFlag : public BitField<decltype(Control3_t), Control3_t, 1, 1> {};
+    struct FlashAccessViolationFlag : public BitField<decltype(Control3_t), Control3_t, 2, 1> {};
+    /// for segment write
+    struct WaitFlag : public BitField<decltype(Control3_t), Control3_t, 3, 1> {};
+    /// locked = read only
+    struct LockBit : public BitField<decltype(Control3_t), Control3_t, 4, 1> {};
+    struct FlashEmergencyExit : public BitField<decltype(Control3_t), Control3_t, 5, 1> {};
+    /// locked = read only
+    struct LockBitSegmentA : public BitField<decltype(Control3_t), Control3_t, 6, 1> {};
+    /// last program or erase failed
+    struct Fail : public BitField<decltype(Control3_t), Control3_t, 7, 1> {};
+    /// Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.
+    struct ControlPassword : public BitField<decltype(Control3_t), Control3_t, 8, 8> {};
+  };
+
+  struct Control4 : public Register<decltype(Control4_t), Control4_t> {
+    /// This bit is set by hardware and can only be cleared by software.
+    ///   If DVCC changed significantly during programming,
+    ///   this bit is set to indicate an invalid result.
+    struct VoltageChangedDuringProgramError : public BitField<decltype(Control4_t), Control4_t, 0, 1> {};
+    struct Reserved1 : public BitField<decltype(Control4_t), Control4_t, 1, 3> {};
+    struct EnableMarginal0ReadMode : public BitField<decltype(Control4_t), Control4_t, 4, 1> {};
+    struct EnableMarginal1ReadMode : public BitField<decltype(Control4_t), Control4_t, 5, 1> {};
+    struct Reserved6 : public BitField<decltype(Control4_t), Control4_t, 6, 1> {};
+    /// If set, the information memory cannot be erased in segment erase mode and cannot be written to.
+    struct LockInformationMemory : public BitField<decltype(Control4_t), Control4_t, 7, 1> {};
+    /// Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.
+    struct ControlPassword : public BitField<decltype(Control4_t), Control4_t, 8, 8> {};
   };
 };
 

@@ -682,6 +682,10 @@ Flash memory.
 Somehow the User Guide (slau208q) misses the `Control2` register, instead it has a `Control4`.
 And it mentions the Flash memory access violation interrupt enable in `SFRIE1`,
 which I do not find in the `msp430g2553.h` header.
+Therefore I am currently making two devices for both options:
+the 3-registers one and the 4-registers.
+
+* This should be done with composition, i.e. optional register. Or with inheritance.
 
 <div class="device_template" id="FlashMemoryModule">
 Device template name: <dfn class="cpp_name">FlashMemoryModule</dfn>
@@ -743,6 +747,7 @@ It controls the Flash clock. But there is nothing on the clock in the guide.
 Fields.
 </summary>
 
+<ul>
 <li class="field"> <dfn>DivideClock</dfn> <span class="width">6</span>'@<span class="offset">0</span>
 <span class="comment"><q cite="msp430g2553.h header">Divide Flash clock by 1 to 64 using these (FN0-FN5) bits as:
 32\*FN5 + 16\*FN4 + 8\*FN3 + 4\*FN2 + 2\*FN1 + FN0 + 1.</q>
@@ -775,6 +780,7 @@ Name: <dfn>Control3</dfn>. Width: <span class="width">16</span>.
 Fields.
 </summary>
 
+<ul>
 <li class="field"> <dfn>Busy</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
 <li class="field"> <dfn>FlashKeyViolationFlag</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
 <li class="field"> <dfn>FlashAccessViolationFlag</dfn> <span class="width">1</span>'@<span class="offset">2</span> </li>
@@ -801,13 +807,141 @@ Fields.
 </details>
 </li>
 
-<li class="register" id="FlashMemoryModule.Control4">
+</ul>
+</details>
+</div>
+
+
+The 4-registers version:
+
+<div class="device_template" id="FlashMemoryModule4">
+Device template name: <dfn class="cpp_name">FlashMemoryModule4</dfn>
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+<li class="register" id="FlashMemoryModule4.Control1">
+Name: <dfn>Control1</dfn>. Width: <span class="width">16</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>Reserved0</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>Erase_MassErase</dfn> <span class="width">2</span>'@<span class="offset">1</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_ERASE</data> </span>
+  <span class="value_option"><data value="1">SEGMENT_ERASE</data> </span>
+  <span class="value_option"><data value="2">BANK_ERASE</data> <span class="comment">erase one bank</span> </span>
+  <span class="value_option"><data value="3">MASS_ERASE</data> <span class="comment">erase all flash memory banks</span> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>Reserved3</dfn> <span class="width">2</span>'@<span class="offset">3</span> </li>
+<li class="field"> <dfn>SmartWrite</dfn> <span class="width">1</span>'@<span class="offset">5</span>
+  <span class="comment"><q cite="(Ti User Guide slau208q, 7.4.1, p362)">If this bit is set, the program time is shortened. The programming quality has to be checked by marginal read modes.</q></span>
+</li>
+
+<li class="field"> <dfn>Write_BlockWrite</dfn> <span class="width">2</span>'@<span class="offset">6</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">Reserved</data> </span>
+  <span class="value_option"><data value="1">BYTE_OR_WORD_WRITE</data> </span>
+  <span class="value_option"><data value="2">LONG_WORD_WRITE</data> </span>
+  <span class="value_option"><data value="3">LONG_WORD_BLOCK_WRITE</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ControlPassword</dfn> <span class="width">8</span>'@<span class="offset">8</span>
+<span class="comment">Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.</span>
+</li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="FlashMemoryModule4.Control2">
+Name: <dfn>Control2</dfn>. Width: <span class="width">16</span>.
+This one is not in the slau208q User Guide.
+It controls the Flash clock. But there is nothing on the clock in the guide.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>DivideClock</dfn> <span class="width">6</span>'@<span class="offset">0</span>
+<span class="comment"><q cite="msp430g2553.h header">Divide Flash clock by 1 to 64 using these (FN0-FN5) bits as:
+32\*FN5 + 16\*FN4 + 8\*FN3 + 4\*FN2 + 2\*FN1 + FN0 + 1.</q>
+So, it is just the field + 1.
+</span>
+</li>
+
+<li class="field"> <dfn>ClockSelect</dfn> <span class="width">2</span>'@<span class="offset">6</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">ACLK</data> </span>
+  <span class="value_option"><data value="1">MCLK</data> </span>
+  <span class="value_option"><data value="2">SMCLK</data> </span>
+  <span class="value_option"><data value="3">SMCLK</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ControlPassword</dfn> <span class="width">8</span>'@<span class="offset">8</span>
+<span class="comment">Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.</span>
+</li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="FlashMemoryModule4.Control3">
+Name: <dfn>Control3</dfn>. Width: <span class="width">16</span>.
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>Busy</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>FlashKeyViolationFlag</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
+<li class="field"> <dfn>FlashAccessViolationFlag</dfn> <span class="width">1</span>'@<span class="offset">2</span> </li>
+<li class="field"> <dfn>WaitFlag</dfn> <span class="width">1</span>'@<span class="offset">3</span>
+  <span class="comment">for segment write</span>
+</li>
+
+<li class="field"> <dfn>LockBit</dfn> <span class="width">1</span>'@<span class="offset">4</span>
+  <span class="comment">locked = read only</span>
+</li>
+<li class="field"> <dfn>FlashEmergencyExit</dfn> <span class="width">1</span>'@<span class="offset">5</span> </li>
+<li class="field"> <dfn>LockBitSegmentA</dfn> <span class="width">1</span>'@<span class="offset">6</span>
+  <span class="comment">locked = read only</span>
+</li>
+<li class="field"> <dfn>Fail</dfn> <span class="width">1</span>'@<span class="offset">7</span>
+  <span class="comment">last program or erase failed</span>
+</li>
+
+<li class="field"> <dfn>ControlPassword</dfn> <span class="width">8</span>'@<span class="offset">8</span>
+<span class="comment">Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.</span>
+</li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="FlashMemoryModule4.Control4">
 Name: <dfn>Control4</dfn>. Width: <span class="width">16</span>.
 <details>
 <summary>
 Fields.
 </summary>
 
+<ul>
 <li class="field"> <dfn>VoltageChangedDuringProgramError</dfn> <span class="width">1</span>'@<span class="offset">0</span>
   <span class="comment">
   <q cite="Ti User Guide slau208q, 7.4.3, p364">
@@ -834,7 +968,6 @@ Fields.
 <span class="comment">Always reads as 096h (0x96 = 150). Must be written as 0A5h (0xA5 = 165) or a PUC is generated.</span>
 </li>
 
-<ul>
 </ul>
 </details>
 </li>
