@@ -1261,13 +1261,206 @@ Valid only in UART (Async) mode.
 </details>
 </li>
 
+<li class="register" id="USCI_A.Status">
+Name: <dfn>Status</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCAxSTAT</code>
+Most bits are valid only for UART (Async).
+The others are common to UART (Async) and SPI (SYNC) modes.
+</span>
+<details>
+  <summary>Bit fields.</summary>
+
+<ul>
+<li class="field"> <dfn>Busy</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+  <span class="comment">
+  <code>UCBUSY</code> Common to both modes.
+  Indicated if a transmit or receive operation is in progress.
+  </span>
+</li>
+
+<li class="field"> <dfn>AddrIdle</dfn> <span class="width">1</span>'@<span class="offset">1</span>
+  <span class="comment">
+  <code>UCADDR/UCIDLE</code> Only UART.
+  <code>UCADDR</code>: address received in address-bit multiprocessor mode.
+  Cleared when <code>UCAxRXBUF</code> is read.
+  <code>UCIDLE</code>: idle line detected in idle-line multiprocessor mode.
+  Cleared when <code>UCAxRXBUF</code> is read.
+  </span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DATA_or_NOIDLE</data> </span>
+  <span class="value_option"><data value="1">ADDRESS_OR_IDLE_DETECTED</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ErrorFlag</dfn> <span class="width">1</span>'@<span class="offset">2</span>
+  <span class="comment">
+  <code>UCRXERR</code> Only UART.
+  Indicated a character was received with error(s).
+  When <code>UCRXERR = 1</code>, one or more error flags, <code>UCFE UCPE UCOE</code>, is also set.
+  Cleared when <code>UCAxRXBUF</code> is read.
+  </span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_ERRORS</data> </span>
+  <span class="value_option"><data value="1">ERROR_DETECTED</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>BreakDetectedFlag</dfn> <span class="width">1</span>'@<span class="offset">3</span>
+  <span class="comment">
+  <code>UCBRK</code> Only UART.
+  Cleared when <code>UCAxRXBUF</code> is read.
+  </span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_BREAK_CONDITIONS</data> </span>
+  <span class="value_option"><data value="1">BREAK_CONDITION_OCCURED</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ErrorFlagParity</dfn> <span class="width">1</span>'@<span class="offset">4</span>
+  <span class="comment">
+  <code>UCPE</code> Only UART.
+  Cleared when <code>UCAxRXBUF</code> is read.
+  </span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_PARITY_ERROR</data> </span>
+  <span class="value_option"><data value="1">WITH_PARITY_ERROR</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ErrorFlagOverrun</dfn> <span class="width">1</span>'@<span class="offset">5</span>
+  <span class="comment">
+  <code>UCOE</code> Both modes.
+  The bit is set when a character is transfered into <code>UCAxRXBUF</code> before the previous character was read.
+  Cleared when <code>UCAxRXBUF</code> is read, and must not be cleared by software.
+  Otherwise, it does not function correctly.
+  </span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_OVERRUN_ERROR</data> </span>
+  <span class="value_option"><data value="1">OVERRUN_OCCURED</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ErrorFlagFraming</dfn> <span class="width">1</span>'@<span class="offset">6</span>
+  <span class="comment">
+  <code>UCFE</code> Both modes.
+  Framing error flag.
+  Cleared when <code>UCAxRXBUF</code> is read.
+  </span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NO_FRAMING_ERROR</data> </span>
+  <span class="value_option"><data value="1">WITH_LOW_STOP_BIT</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ListenEnable</dfn> <span class="width">1</span>'@<span class="offset">7</span>
+  <span class="comment">
+  <code>UCLISTEN</code> Both modes.
+  Selects loopback mode.
+  When enabled (=1) the <code>UCAxTXD</code> is internally fed back to the receiver.
+  </span>
+</li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="USCI_A.RXBuffer">
+Name: <dfn>RXBuffer</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCAxRXBUF</code>
+The receive-data buffer is user-accessible and contains the last received character from the receive shift register.
+Reading <code>UCAxRXBUF</code> resets the receive-error bits,
+the Address/Idle <code>UCADDR/UCIDLE</code> bit, and the <code>UCRXIFG</code> (which I do not find in the header).
+In 7-bit data mode, <code>UCAxRXBUF</code> is LSB justified and the MSB is always reset.
+</span>
+</li>
+
+<li class="register" id="USCI_A.TXBuffer">
+Name: <dfn>TXBuffer</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCAxTXBUF</code>
+The transmit-data buffer is user-accessible and contains the data waiting to be moved into the transmit shift register
+and transmitted on <code>UCAxTXD</code>.
+Writing to <code>UCAxTXBUF</code> clears <code>UCTXIFG</code> (which I do not find in the header).
+The MSB of <code>UCAxTXBUF</code> is not used for 7-bit data and is reset.
+</span>
+</li>
+
+<li class="register" id="USCI_A.AutoBaudRateControl">
+Name: <dfn>AutoBaudRateControl</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCAxABCTL</code> Only UART mode.
+For some reason, the header calls it "LIN Control".
+</span>
+<details>
+  <summary>Bit fields.</summary>
+<ul>
+
+<li class="field"> <dfn>Enable</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+  <span class="comment">
+  <code>UCABDEN</code>
+  Automatic baud-rate detect enable.
+  When enabled (=1) the length of break and sync field is measured and baud-rate settings are changed accordingly.
+  </span>
+</li>
+
+<li class="field"> <dfn>Reserved1</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
+
+<li class="field"> <dfn>TimeoutBreak</dfn> <span class="width">1</span>'@<span class="offset">2</span>
+  <span class="comment">
+  <code>UCBTOE</code>
+  Break time out error.
+  When set (=1), the length of break field exceeded 22 bit times.
+  </span>
+</li>
+
+<li class="field"> <dfn>TimeoutSynch</dfn> <span class="width">1</span>'@<span class="offset">3</span>
+  <span class="comment">
+  <code>UCSTOE</code>
+  Synch field time out error.
+  When set (=1), the length of synch field exceeded measurable time.
+  </span>
+</li>
+
+<li class="field"> <dfn>BreakSynchDelimiterLength</dfn> <span class="width">2</span>'@<span class="offset">4</span>
+  <span class="comment">
+  <code>UCDELIMx</code>
+  Break and synch delimiter length.
+  </span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DELIM_1_BIT</data> </span>
+  <span class="value_option"><data value="1">DELIM_2_BIT</data> </span>
+  <span class="value_option"><data value="2">DELIM_3_BIT</data> </span>
+  <span class="value_option"><data value="3">DELIM_4_BIT</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>Reserved6</dfn> <span class="width">2</span>'@<span class="offset">6</span> </li>
+
+</ul>
+</details>
+</li>
+
 </ul>
 </details>
 </div>
 <p>TODO:</p>
 <ul>
 <li><code>USCI_B</code> seems to have the same registers and bit field
-mapping as A.</li>
+mapping as A.
+<ul>
+<li>I also do not find the <code>UCAxIE</code> (Interrup Enable) and
+<code>UCAxIFG</code> (Interrupt Flag) registers in the
+<code>msp430g2553.h</code> header.</li>
+</ul></li>
 <li>Watchdog timer.</li>
 <li>Calibration data.</li>
 <li>Flash Memory: Check the datasheet for MSP430G2553. The registers are

@@ -529,7 +529,11 @@ template<volatile unsigned char& Control0_t,
          volatile unsigned char& Control1_t,
          volatile unsigned char& BaudRate0_t,
          volatile unsigned char& BaudRate1_t,
-         volatile unsigned char& ModulationControl_t>
+         volatile unsigned char& ModulationControl_t,
+         volatile unsigned char& Status_t,
+         volatile unsigned char& RXBuffer_t,
+         volatile unsigned char& TXBuffer_t,
+         volatile unsigned char& AutoBaudRateControl_t>
 struct USCI_A {
   USCI_A() = delete;
 
@@ -667,6 +671,96 @@ struct USCI_A {
     ///   Ignored when Oversampling is disabled.
     ///   Table 36-2 in the slau208q User Guide.
     struct FirstModulationStageSelect : public BitField<decltype(ModulationControl_t), ModulationControl_t, 4, 4> {};
+  };
+
+  struct Status : public Register<decltype(Status_t), Status_t> {
+    /// UCBUSY Common to both modes.
+    ///   Indicated if a transmit or receive operation is in progress.
+    struct Busy : public BitField<decltype(Status_t), Status_t, 0, 1> {};
+    /// UCADDR/UCIDLE Only UART.
+    ///   UCADDR: address received in address-bit multiprocessor mode.
+    ///   Cleared when UCAxRXBUF is read.
+    ///   UCIDLE: idle line detected in idle-line multiprocessor mode.
+    ///   Cleared when UCAxRXBUF is read.
+    struct AddrIdle : public BitField<decltype(Status_t), Status_t, 1, 1> {
+      constexpr static typename AddrIdle::OPT
+        DATA_or_NOIDLE{0},
+        ADDRESS_OR_IDLE_DETECTED{1};
+    };
+    /// UCRXERR Only UART.
+    ///   Indicated a character was received with error(s).
+    ///   When UCRXERR = 1, one or more error flags, UCFE UCPE UCOE, is also set.
+    ///   Cleared when UCAxRXBUF is read.
+    struct ErrorFlag : public BitField<decltype(Status_t), Status_t, 2, 1> {
+      constexpr static typename ErrorFlag::OPT
+        NO_ERRORS{0},
+        ERROR_DETECTED{1};
+    };
+    /// UCBRK Only UART.
+    ///   Cleared when UCAxRXBUF is read.
+    struct BreakDetectedFlag : public BitField<decltype(Status_t), Status_t, 3, 1> {
+      constexpr static typename BreakDetectedFlag::OPT
+        NO_BREAK_CONDITIONS{0},
+        BREAK_CONDITION_OCCURED{1};
+    };
+    /// UCPE Only UART.
+    ///   Cleared when UCAxRXBUF is read.
+    struct ErrorFlagParity : public BitField<decltype(Status_t), Status_t, 4, 1> {
+      constexpr static typename ErrorFlagParity::OPT
+        NO_PARITY_ERROR{0},
+        WITH_PARITY_ERROR{1};
+    };
+    /// UCOE Both modes.
+    ///   The bit is set when a character is transfered into UCAxRXBUF before the previous character was read.
+    ///   Cleared when UCAxRXBUF is read, and must not be cleared by software.
+    ///   Otherwise, it does not function correctly.
+    struct ErrorFlagOverrun : public BitField<decltype(Status_t), Status_t, 5, 1> {
+      constexpr static typename ErrorFlagOverrun::OPT
+        NO_OVERRUN_ERROR{0},
+        OVERRUN_OCCURED{1};
+    };
+    /// UCFE Both modes.
+    ///   Framing error flag.
+    ///   Cleared when UCAxRXBUF is read.
+    struct ErrorFlagFraming : public BitField<decltype(Status_t), Status_t, 6, 1> {
+      constexpr static typename ErrorFlagFraming::OPT
+        NO_FRAMING_ERROR{0},
+        WITH_LOW_STOP_BIT{1};
+    };
+    /// UCLISTEN Both modes.
+    ///   Selects loopback mode.
+    ///   When enabled (=1) the UCAxTXD is internally fed back to the receiver.
+    struct ListenEnable : public BitField<decltype(Status_t), Status_t, 7, 1> {};
+  };
+
+  struct RXBuffer : public Register<decltype(RXBuffer_t), RXBuffer_t> {};
+
+  struct TXBuffer : public Register<decltype(TXBuffer_t), TXBuffer_t> {};
+
+  struct AutoBaudRateControl : public Register<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t> {
+    /// UCABDEN
+    ///   Automatic baud-rate detect enable.
+    ///   When enabled (=1) the length of break and sync field is measured and baud-rate settings are changed accordingly.
+    struct Enable : public BitField<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t, 0, 1> {};
+    struct Reserved1 : public BitField<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t, 1, 1> {};
+    /// UCBTOE
+    ///   Break time out error.
+    ///   When set (=1), the length of break field exceeded 22 bit times.
+    struct TimeoutBreak : public BitField<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t, 2, 1> {};
+    /// UCSTOE
+    ///   Synch field time out error.
+    ///   When set (=1), the length of synch field exceeded measurable time.
+    struct TimeoutSynch : public BitField<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t, 3, 1> {};
+    /// UCDELIMx
+    ///   Break and synch delimiter length.
+    struct BreakSynchDelimiterLength : public BitField<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t, 4, 2> {
+      constexpr static typename BreakSynchDelimiterLength::OPT
+        DELIM_1_BIT{0},
+        DELIM_2_BIT{1},
+        DELIM_3_BIT{2},
+        DELIM_4_BIT{3};
+    };
+    struct Reserved6 : public BitField<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t, 6, 2> {};
   };
 };
 
