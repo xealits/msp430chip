@@ -1204,6 +1204,64 @@ Fields.
 </details>
 </li>
 
+<li class="register" id="USCI_A.BaudRate0">
+Name: <dfn>BaudRate0</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCAxBR0</code>
+Low byte of clock prescaler setting of the baud-rate generator.
+The 16-bit value of <code>BaudRate0 + BaudRate1 \* 256</code>
+forms the prescaler value <code>UCBRx</code>.
+<code>f_bitclock = f_brclk / UCBRx</code>
+<code>UCBRx = 0 => f_bitclock = f_brclk</code>
+</span>
+</li>
+
+<li class="register" id="USCI_A.BaudRate1">
+Name: <dfn>BaudRate1</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCAxBR1</code>
+High byte of clock prescaler setting of the baud-rate generator.
+The 16-bit value of <code>BaudRate0 + BaudRate1 \* 256</code>
+forms the prescaler value <code>UCBRx</code>.
+<code>f_bitclock = f_brclk / UCBRx</code>
+<code>UCBRx = 0 => f_bitclock = f_brclk</code>
+</span>
+</li>
+
+<li class="register" id="USCI_A.ModulationControl">
+Name: <dfn>ModulationControl</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCAxMCTL</code>
+Valid only in UART (Async) mode.
+</span>
+<details>
+  <summary>Bit fields in UART (Async) mode.</summary>
+
+<ul>
+<li class="field"> <dfn>OversamplingEnable</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+  <span class="comment"> <code>UCOS16</code> </span>
+</li>
+
+<li class="field"> <dfn>SecondModulationStageSelect</dfn> <span class="width">3</span>'@<span class="offset">1</span>
+  <span class="comment">
+  <code>UCBRSx</code>
+  These bits determine the modulation pattern for BITCLK. Table 36-2 in the slau208q User Guide.
+  </span>
+</li>
+
+<li class="field"> <dfn>FirstModulationStageSelect</dfn> <span class="width">4</span>'@<span class="offset">4</span>
+  <span class="comment">
+  <code>UCBRFx</code>
+  These bits determine the modulation pattern for BITCLK16 when Oversampling is enabled (UCOS16).
+  Ignored when Oversampling is disabled.
+  Table 36-2 in the slau208q User Guide.
+  </span>
+</li>
+
+</ul>
+</details>
+</li>
+
 </ul>
 </details>
 </div>

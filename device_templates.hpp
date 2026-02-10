@@ -526,7 +526,10 @@ struct FlashMemoryModule4 {
 };
 
 template<volatile unsigned char& Control0_t,
-         volatile unsigned char& Control1_t>
+         volatile unsigned char& Control1_t,
+         volatile unsigned char& BaudRate0_t,
+         volatile unsigned char& BaudRate1_t,
+         volatile unsigned char& ModulationControl_t>
 struct USCI_A {
   USCI_A() = delete;
 
@@ -647,6 +650,23 @@ struct USCI_A {
     /// SMCLK 
     /// SMCLK
     struct ClockSource : public BitField<decltype(Control1_t), Control1_t, 6, 2> {};
+  };
+
+  struct BaudRate0 : public Register<decltype(BaudRate0_t), BaudRate0_t> {};
+
+  struct BaudRate1 : public Register<decltype(BaudRate1_t), BaudRate1_t> {};
+
+  struct ModulationControl : public Register<decltype(ModulationControl_t), ModulationControl_t> {
+    /// UCOS16
+    struct OversamplingEnable : public BitField<decltype(ModulationControl_t), ModulationControl_t, 0, 1> {};
+    /// UCBRSx
+    ///   These bits determine the modulation pattern for BITCLK. Table 36-2 in the slau208q User Guide.
+    struct SecondModulationStageSelect : public BitField<decltype(ModulationControl_t), ModulationControl_t, 1, 3> {};
+    /// UCBRFx
+    ///   These bits determine the modulation pattern for BITCLK16 when Oversampling is enabled (UCOS16).
+    ///   Ignored when Oversampling is disabled.
+    ///   Table 36-2 in the slau208q User Guide.
+    struct FirstModulationStageSelect : public BitField<decltype(ModulationControl_t), ModulationControl_t, 4, 4> {};
   };
 };
 
