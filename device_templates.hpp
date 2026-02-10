@@ -792,5 +792,71 @@ struct USCI_A {
   };
 };
 
+template<volatile unsigned char& Control0_t>
+struct USCI_B {
+  USCI_B() = delete;
+
+  struct Control0 : public Register<decltype(Control0_t), Control0_t> {
+    /// UCSYNC
+    /// Not sure what this one means here.
+    /// The msp430g2553.h header says it is Async=UART and Sync=SPI,
+    /// i.e. the same as for USCI A. Which cannot be true.
+    /// One should SPI and another one is I2C.
+    /// I guess, SyncMode=ASYNCHRONOUS and USCIMode=I2C selects I2C?
+    struct SyncMode : public BitField<decltype(Control0_t), Control0_t, 0, 1> {
+      constexpr static typename SyncMode::OPT
+        ASYNCHRONOUS{0},
+        SYNCHRONOUS{1};
+    };
+    /// UCMODE0 and UCMODE1
+    struct USCIMode : public BitField<decltype(Control0_t), Control0_t, 1, 2> {
+      constexpr static typename USCIMode::OPT
+        SYNC_3pin_SPI{0},
+        SYNC_4pin_SPI_UCxSTE_active_HIGH{1} /** Slave enabled when UCxSTE = 1. */,
+        SYNC_4pin_SPI_UCxSTE_active_LOW{2} /** Slave enabled when UCxSTE = 0. */,
+        I2C_MODE{3};
+    };
+    /// UCMST
+    /// In I2C mode: when a master loses arbitration in a multi-master environment (UCMM = 1),
+    /// the UCMST bit is automatically cleared and the module acts as slave.
+    struct MasterMode : public BitField<decltype(Control0_t), Control0_t, 3, 1> {
+      constexpr static typename MasterMode::OPT
+        SLAVE_MODE{0},
+        MASTER_MODE{1};
+    };
+    /// UC7BIT
+    /// In SPI mode: selects 7-bit or 8-bit character length.
+    /// In I2C: reserved, alwasy reads as 0.
+    struct CharacterLength : public BitField<decltype(Control0_t), Control0_t, 4, 1> {
+      constexpr static typename CharacterLength::OPT
+        CHAR_8bit{0},
+        CHAR_7bit{1};
+    };
+    /// In SPI mode: UCMSB, controls the direction of the receive and transmit shift register.
+    /// In I2C mode: UCMM, selects single-master or multi-master environment.
+    struct MSBFirst_or_MultiMasterSelect : public BitField<decltype(Control0_t), Control0_t, 5, 1> {
+      constexpr static typename MSBFirst_or_MultiMasterSelect::OPT
+        LSB_FIRST_or_SINGLE_MASTER{0} /** I2C single-master: there is no other master in the system. The address compare unit is disabled. */,
+        MSB_FIRST_or_MULTI_MASTER{1};
+    };
+    /// In SPI (Sync) mode: UCCKPL selects clock polarity.
+    /// In I2C mode: address slave with 7-bit or 10-bit address.
+    struct Polarity_or_SlaveAddressingMode : public BitField<decltype(Control0_t), Control0_t, 6, 1> {
+      constexpr static typename Polarity_or_SlaveAddressingMode::OPT
+        InactiveStateIsLow_or_Address7bit{0},
+        InactiveStateIsHigh_or_Address10bit{1};
+    };
+    /// In SPI (Sync) mode: UCCKPL selects clock phase:
+    /// data is changed of the first UCLK edge and captured on the following edge,
+    /// or is captured on the first edge and changed on the following.
+    /// In I2C mode: UCA10 selects own address is 7-bit or 10-bit address.
+    struct ClockPhaseSelect_or_OwnAddressingMode : public BitField<decltype(Control0_t), Control0_t, 7, 1> {
+      constexpr static typename ClockPhaseSelect_or_OwnAddressingMode::OPT
+        DataChangeCapture_or_OwnAddress7bit{0},
+        DataCaptureChange_or_OwnAddress10bit{1};
+    };
+  };
+};
+
 };
 

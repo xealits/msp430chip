@@ -977,7 +977,8 @@ Fields.
 </div>
 
 
-USCI A, the configuration in `msp430g2553.h` and the User Guide slau208q:
+USCI A: UART (Asynchronous) and SPI (Synchronous) modes.
+The configuration in `msp430g2553.h` and the User Guide slau208q:
 
 <div class="device_template" id="USCI_A">
 Device template name: <dfn class="cpp_name">USCI_A</dfn>
@@ -1517,6 +1518,138 @@ Name: <dfn>IrDAReceiveControl</dfn>. Width: <span class="width">8</span>.
 </ul>
 </details>
 </div>
+
+USCI B: SPI and I2C modes.
+The configuration in `msp430g2553.h` and the User Guide slau208q:
+
+<div class="device_template" id="USCI_B">
+Device template name: <dfn class="cpp_name">USCI_B</dfn>
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+<li class="register" id="USCI_B.Control0">
+Name: <dfn>Control0</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCB0CTL0</code>
+</span>
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+
+<li class="field"> <dfn>SyncMode</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+<span class="comment">
+<code>UCSYNC</code>
+Not sure what this one means here.
+The <code>msp430g2553.h</code> header says it is Async=UART and Sync=SPI,
+i.e. the same as for USCI A. Which cannot be true.
+One should SPI and another one is I2C.
+I guess, <code>SyncMode=ASYNCHRONOUS</code> and <code>USCIMode=I2C</code> selects I2C?
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">ASYNCHRONOUS</data> </span>
+  <span class="value_option"><data value="1">SYNCHRONOUS</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>USCIMode</dfn> <span class="width">2</span>'@<span class="offset">1</span>
+<span class="comment">
+<code>UCMODE0</code> and <code>UCMODE1</code>
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">SYNC_3pin_SPI</data> </span>
+  <span class="value_option"><data value="1">SYNC_4pin_SPI_UCxSTE_active_HIGH</data>
+  <span class="comment">Slave enabled when <code>UCxSTE = 1</code>.</span>
+  </span>
+  <span class="value_option"><data value="2">SYNC_4pin_SPI_UCxSTE_active_LOW</data>
+  <span class="comment">Slave enabled when <code>UCxSTE = 0</code>.</span>
+  </span>
+  <span class="value_option"><data value="3">I2C_MODE</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>MasterMode</dfn> <span class="width">1</span>'@<span class="offset">3</span>
+<span class="comment">
+<code>UCMST</code>
+In I2C mode: when a master loses arbitration in a multi-master environment (<code>UCMM = 1</code>),
+the <code>UCMST</code> bit is automatically cleared and the module acts as slave.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">SLAVE_MODE</data> </span>
+  <span class="value_option"><data value="1">MASTER_MODE</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>CharacterLength</dfn> <span class="width">1</span>'@<span class="offset">4</span>
+<span class="comment">
+<code>UC7BIT</code>
+In SPI mode: selects 7-bit or 8-bit character length.
+In I2C: reserved, alwasy reads as 0.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">CHAR_8bit</data> </span>
+  <span class="value_option"><data value="1">CHAR_7bit</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>MSBFirst_or_MultiMasterSelect</dfn> <span class="width">1</span>'@<span class="offset">5</span>
+<span class="comment">
+In SPI mode: <code>UCMSB</code>, controls the direction of the receive and transmit shift register.
+In I2C mode: <code>UCMM</code>, selects single-master or multi-master environment.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">LSB_FIRST_or_SINGLE_MASTER</data>
+  <span class="comment">I2C single-master: there is no other master in the system. The address compare unit is disabled.</span>
+  </span>
+  <span class="value_option"><data value="1">MSB_FIRST_or_MULTI_MASTER</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>Polarity_or_SlaveAddressingMode</dfn> <span class="width">1</span>'@<span class="offset">6</span>
+<span class="comment">
+In SPI (Sync) mode: <code>UCCKPL</code> selects clock polarity.
+In I2C mode: address slave with 7-bit or 10-bit address.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">InactiveStateIsLow_or_Address7bit</data> </span>
+  <span class="value_option"><data value="1">InactiveStateIsHigh_or_Address10bit</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ClockPhaseSelect_or_OwnAddressingMode</dfn> <span class="width">1</span>'@<span class="offset">7</span>
+<span class="comment">
+In SPI (Sync) mode: <code>UCCKPL</code> selects clock phase:
+data is changed of the first UCLK edge and captured on the following edge,
+or is captured on the first edge and changed on the following.
+In I2C mode: <code>UCA10</code> selects own address is 7-bit or 10-bit address.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">DataChangeCapture_or_OwnAddress7bit</data> </span>
+  <span class="value_option"><data value="1">DataCaptureChange_or_OwnAddress10bit</data> </span>
+</details>
+</li>
+
+</ul>
+</details>
+</li>
+
+</ul>
+</details>
+</div>
+
 
 TODO:
 

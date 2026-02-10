@@ -46,6 +46,8 @@ namespace MSP430G2553 {
           UCA0BR0, UCA0BR1, UCA0MCTL, UCA0STAT,
           UCA0RXBUF, UCA0TXBUF, UCA0ABCTL, UCA0IRTCTL, UCA0IRRCTL>;
 
+    using USCI_B = regmaps::USCI_B<UCB0CTL0>;
+
     /// Special Function Registers
     namespace SFRs {
         struct InterruptEnable1 : public Register<decltype(IE1), IE1> {
