@@ -525,9 +525,10 @@ struct FlashMemoryModule4 {
   };
 };
 
-template<volatile unsigned char& Control0_t>
-struct USCI {
-  USCI() = delete;
+template<volatile unsigned char& Control0_t,
+         volatile unsigned char& Control1_t>
+struct USCI_A {
+  USCI_A() = delete;
 
   struct Control0 : public Register<decltype(Control0_t), Control0_t> {
     struct SyncMode : public BitField<decltype(Control0_t), Control0_t, 0, 1> {
@@ -583,6 +584,69 @@ struct USCI {
         ParityDisable_or_DataChangeCapture{0},
         ParityEnable_or_DataCaptureChange{1};
     };
+  };
+
+  struct Control1 : public Register<decltype(Control1_t), Control1_t> {
+    /// Valid in both modes.
+    ///   When enabled (=1), the USCI logic is held in reset state.
+    ///   When disabled (=0), USCI released for operation.
+    struct SoftwareReset : public BitField<decltype(Control1_t), Control1_t, 0, 1> {};
+    /// UCTXBRK
+    ///   Transmits a break with the next write to the transmit buffer.
+    ///   In UART mode with automatic baud-rate detection,
+    ///   055h (0x55) must be written into
+    ///   UCAxTXBUF to generate the required break/synch fields.
+    ///   Otherwise, 0x0 must be written into the transmit buffer.
+    struct TransmitBreak : public BitField<decltype(Control1_t), Control1_t, 1, 1> {
+      constexpr static typename TransmitBreak::OPT
+        NEXT_FRAME_IS_NOT_A_BREAK{0},
+        NEXT_FRAME_IS_A_BREAK{1} /** Next frame transmitted is a break or a break/synch. */;
+    };
+    /// UCTXADDR
+    ///   Transmits to be transmitted is marked as address,
+    ///   depending on the selected multiprocessor mode.
+
+    /// Value options.
+    /// NEXT_FRAME_IS_DATA 
+    /// NEXT_FRAME_IS_ADDRESS
+    struct TransmitAddress : public BitField<decltype(Control1_t), Control1_t, 2, 1> {};
+    /// UCDORM
+    ///   Puts USCI into sleep mode.
+
+    /// Value options.
+    /// NOT_DORMANT
+    /// All received characters set the flag UCRXIFG.
+
+    /// DORMANT
+    /// Only characters that are preceded by an idle-line or with address bit set UCRXIFG.
+    ///   In UART mode with automatic baud-rate detection, only the combination of a break and synch fields sets UCRXIFG.
+    struct Dormant : public BitField<decltype(Control1_t), Control1_t, 3, 1> {};
+    /// UCBRKIE
+    ///   Receive break character interrupt enable - set or no UCRXIFG.
+
+    /// Value options.
+    /// RX_BREAK_DONOT_SET_FLAG
+    /// Received break characters do not set the flag UCRXIFG.
+
+    /// RX_BREAK_SET_FLAG
+    /// Received break characters set the flag UCRXIFG.
+    struct RXBreakCharInterruptEnable : public BitField<decltype(Control1_t), Control1_t, 4, 1> {};
+    /// UCRXEIE
+    ///   Receive erroneous-character interrupt enable - set or no UCRXIFG.
+
+    /// Value options.
+    /// ERRCHARS_REJECTED_N_UCRXIFG_NOT_SET 
+    /// ERRCHARS_RECEIVED_N_UCRXIFG_SET
+    struct RXErroneousCharInterruptEnable : public BitField<decltype(Control1_t), Control1_t, 5, 1> {};
+    /// UCSSELx
+    ///   USCI clock source select. Select the BRCLK source clock.
+
+    /// Value options.
+    /// UCAxCLK External USCI clock 
+    /// ACLK 
+    /// SMCLK 
+    /// SMCLK
+    struct ClockSource : public BitField<decltype(Control1_t), Control1_t, 6, 2> {};
   };
 };
 

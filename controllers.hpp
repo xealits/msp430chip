@@ -42,7 +42,7 @@ namespace MSP430G2553 {
 
     using FlashMemoryModule = regmaps::FlashMemoryModule<FCTL1, FCTL2, FCTL3>;
 
-    using USCI = regmaps::USCI<UCA0CTL0>;
+    using USCI_A = regmaps::USCI_A<UCA0CTL0, UCA0CTL1>;
 
     /// Special Function Registers
     namespace SFRs {

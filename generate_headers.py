@@ -260,7 +260,7 @@ def parse_register(bs_elem):
 
     for field_elem in bs_fields:
         field_name, field_info = parse_field(field_elem)
-        assert field_name not in reg_fields
+        assert field_name not in reg_fields, f"field {field_name} not in {reg_fields}"
         reg_fields[field_name] = field_info
 
     return name, reg

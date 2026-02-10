@@ -977,10 +977,10 @@ Fields.
 </div>
 
 
-USCI, the configuration in `msp430g2553.h`:
+USCI A, the configuration in `msp430g2553.h` and the User Guide slau208q:
 
-<div class="device_template" id="USCI">
-Device template name: <dfn class="cpp_name">USCI</dfn>
+<div class="device_template" id="USCI_A">
+Device template name: <dfn class="cpp_name">USCI_A</dfn>
 
 <details>
 <summary>
@@ -988,7 +988,7 @@ Registers.
 </summary>
 
 <ul>
-<li class="register" id="USCI.Control0">
+<li class="register" id="USCI_A.Control0">
 Name: <dfn>Control0</dfn>. Width: <span class="width">8</span>.
 <span class="comment">The User Guide says the first bit is:
 0 = Asynchronous mode, 1 = Synchronous.
@@ -1091,13 +1091,126 @@ Fields.
 </details>
 </li>
 
+<li class="register" id="USCI_A.Control1">
+Name: <dfn>Control1</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+According to Sync mode,
+0 = Asynchronous mode (UART) and 1 = Synchronous (SPI),
+only few bit fields are used in Sync (SPI) mode.
+So, when there is no `_or_` in a bitfield name,
+the bitfield is used only in Async (UART) mode
+or it has the same meaning in both modes.
+</span>
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+<li class="field"> <dfn>SoftwareReset</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+  <span class="comment">Valid in both modes.
+  When enabled (=1), the USCI logic is held in reset state.
+  When disabled (=0), USCI released for operation.
+  </span>
+</li>
+
+<li class="field"> <dfn>TransmitBreak</dfn> <span class="width">1</span>'@<span class="offset">1</span>
+  <span class="comment">
+  <code>UCTXBRK</code>
+  Transmits a break with the next write to the transmit buffer.
+  In UART mode with automatic baud-rate detection,
+  <code>055h</code> (<code>0x55</code>) must be written into
+  <code>UCAxTXBUF</code> to generate the required break/synch fields.
+  Otherwise, <code>0x0</code> must be written into the transmit buffer.
+  </span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NEXT_FRAME_IS_NOT_A_BREAK</data> </span>
+  <span class="value_option"><data value="1">NEXT_FRAME_IS_A_BREAK</data>
+  <span class="comment">Next frame transmitted is a break or a break/synch.</span>
+  </span>
+</details>
+</li>
+
+<li class="field"> <dfn>TransmitAddress</dfn> <span class="width">1</span>'@<span class="offset">2</span>
+  <span class="comment">
+  <code>UCTXADDR</code>
+  Transmits to be transmitted is marked as address,
+  depending on the selected multiprocessor mode.
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NEXT_FRAME_IS_DATA</data> </span>
+  <span class="value_option"><data value="1">NEXT_FRAME_IS_ADDRESS</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>Dormant</dfn> <span class="width">1</span>'@<span class="offset">3</span>
+  <span class="comment">
+  <code>UCDORM</code>
+  Puts USCI into sleep mode.
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NOT_DORMANT</data>
+  <span class="comment">All received characters set the flag <code>UCRXIFG</code>.</span>
+  </span>
+  <span class="value_option"><data value="1">DORMANT</data>
+  <span class="comment">Only characters that are preceded by an idle-line or with address bit set <code>UCRXIFG</code>.
+  In UART mode with automatic baud-rate detection, only the combination of a break and synch fields sets <code>UCRXIFG</code>.
+  </span>
+  </span>
+</details>
+</li>
+
+<li class="field"> <dfn>RXBreakCharInterruptEnable</dfn> <span class="width">1</span>'@<span class="offset">4</span>
+  <span class="comment">
+  <code>UCBRKIE</code>
+  Receive break character interrupt enable - set or no <code>UCRXIFG</code>.
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">RX_BREAK_DONOT_SET_FLAG</data>
+  <span class="comment">Received break characters do not set the flag <code>UCRXIFG</code>.</span>
+  </span>
+  <span class="value_option"><data value="1">RX_BREAK_SET_FLAG</data>
+  <span class="comment">Received break characters set the flag <code>UCRXIFG</code>.</span>
+  </span>
+</details>
+</li>
+
+<li class="field"> <dfn>RXErroneousCharInterruptEnable</dfn> <span class="width">1</span>'@<span class="offset">5</span>
+  <span class="comment">
+  <code>UCRXEIE</code>
+  Receive erroneous-character interrupt enable - set or no <code>UCRXIFG</code>.
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">ERRCHARS_REJECTED_N_UCRXIFG_NOT_SET</data> </span>
+  <span class="value_option"><data value="1">ERRCHARS_RECEIVED_N_UCRXIFG_SET</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ClockSource</dfn> <span class="width">2</span>'@<span class="offset">6</span>
+  <span class="comment">
+  <code>UCSSELx</code>
+  USCI clock source select. Select the <code>BRCLK</code> source clock.
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">UCAxCLK</data> <span class="comment">External USCI clock</span> </span>
+  <span class="value_option"><data value="1">ACLK</data> </span>
+  <span class="value_option"><data value="2">SMCLK</data> </span>
+  <span class="value_option"><data value="3">SMCLK</data> </span>
+</details>
+</li>
+
+</ul>
+</details>
+</li>
+
 </ul>
 </details>
 </div>
 
 TODO:
 
-* USCI.
+* `USCI_B` seems to have the same registers and bit field mapping as A.
 * Watchdog timer.
 * Calibration data.
 * Flash Memory: Check the datasheet for MSP430G2553.
