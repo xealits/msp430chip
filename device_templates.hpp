@@ -533,7 +533,9 @@ template<volatile unsigned char& Control0_t,
          volatile unsigned char& Status_t,
          volatile unsigned char& RXBuffer_t,
          volatile unsigned char& TXBuffer_t,
-         volatile unsigned char& AutoBaudRateControl_t>
+         volatile unsigned char& AutoBaudRateControl_t,
+         volatile unsigned char& IrDATransmitControl_t,
+         volatile unsigned char& IrDAReceiveControl_t>
 struct USCI_A {
   USCI_A() = delete;
 
@@ -761,6 +763,32 @@ struct USCI_A {
         DELIM_4_BIT{3};
     };
     struct Reserved6 : public BitField<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t, 6, 2> {};
+  };
+
+  struct IrDATransmitControl : public Register<decltype(IrDATransmitControl_t), IrDATransmitControl_t> {
+    struct EncoderDecoderEnable : public BitField<decltype(IrDATransmitControl_t), IrDATransmitControl_t, 0, 1> {};
+    struct TransmitPulseClockSelect : public BitField<decltype(IrDATransmitControl_t), IrDATransmitControl_t, 1, 1> {
+      constexpr static typename TransmitPulseClockSelect::OPT
+        BRCLK{0},
+        BITCLK{1} /** When Oversampling is ON (UCOS16 = 1). Otherwise, BRCLK. */;
+    };
+    /// UCIRTXPLx
+    ///   The minimum pulse length for receive is given by:
+    ///   t_pulse = (UCIRTXPLx + 1) / (2 \* f_irtxclk)
+    struct TransmitLength : public BitField<decltype(IrDATransmitControl_t), IrDATransmitControl_t, 2, 6> {};
+  };
+
+  struct IrDAReceiveControl : public Register<decltype(IrDAReceiveControl_t), IrDAReceiveControl_t> {
+    struct FilterEnable : public BitField<decltype(IrDAReceiveControl_t), IrDAReceiveControl_t, 0, 1> {};
+    struct Polarity : public BitField<decltype(IrDAReceiveControl_t), IrDAReceiveControl_t, 1, 1> {
+      constexpr static typename Polarity::OPT
+        HIGH_PULSE_ON_LIGHT{0},
+        LOW_PULSE_ON_LIGHT{1};
+    };
+    /// UCIRRXFLx
+    ///   The minimum pulse length for receive is given by:
+    ///   t_min = (UCIRRXFLx + 4) / (2 \* f_brclk)
+    struct FilterLength : public BitField<decltype(IrDAReceiveControl_t), IrDAReceiveControl_t, 2, 6> {};
   };
 };
 

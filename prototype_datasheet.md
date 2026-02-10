@@ -1450,6 +1450,70 @@ For some reason, the header calls it "LIN Control".
 </details>
 </li>
 
+<li class="register" id="USCI_A.IrDATransmitControl">
+Name: <dfn>IrDATransmitControl</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCAxIRTCTL</code> Only UART mode.
+<code>USCI_Ax</code> IrDA Transmit Control Register.
+</span>
+<details>
+  <summary>Bit fields.</summary>
+<ul>
+
+<li class="field"> <dfn>EncoderDecoderEnable</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>TransmitPulseClockSelect</dfn> <span class="width">1</span>'@<span class="offset">1</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">BRCLK</data> </span>
+  <span class="value_option"><data value="1">BITCLK</data>
+  <span class="comment">When Oversampling is ON (UCOS16 = 1). Otherwise, BRCLK.</span>
+  </span>
+</details>
+</li>
+
+<li class="field"> <dfn>TransmitLength</dfn> <span class="width">6</span>'@<span class="offset">2</span>
+  <span class="comment">
+  <code>UCIRTXPLx</code>
+  The minimum pulse length for receive is given by:
+  <code>t_pulse = (UCIRTXPLx + 1) / (2 \* f_irtxclk)</code>
+  </span>
+</li>
+
+</ul>
+</details>
+</li>
+
+<li class="register" id="USCI_A.IrDAReceiveControl">
+Name: <dfn>IrDAReceiveControl</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+<code>UCAxIRRCTL</code> Only UART mode.
+<code>USCI_Ax</code> IrDA Receive Control Register.
+</span>
+<details>
+  <summary>Bit fields.</summary>
+<ul>
+
+<li class="field"> <dfn>FilterEnable</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
+<li class="field"> <dfn>Polarity</dfn> <span class="width">1</span>'@<span class="offset">1</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">HIGH_PULSE_ON_LIGHT</data> </span>
+  <span class="value_option"><data value="1">LOW_PULSE_ON_LIGHT</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>FilterLength</dfn> <span class="width">6</span>'@<span class="offset">2</span>
+  <span class="comment">
+  <code>UCIRRXFLx</code>
+  The minimum pulse length for receive is given by:
+  <code>t_min = (UCIRRXFLx + 4) / (2 \* f_brclk)</code>
+  </span>
+</li>
+
+</ul>
+</details>
+</li>
+
 </ul>
 </details>
 </div>
