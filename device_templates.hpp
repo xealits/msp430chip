@@ -525,5 +525,66 @@ struct FlashMemoryModule4 {
   };
 };
 
+template<volatile unsigned char& Control0_t>
+struct USCI {
+  USCI() = delete;
+
+  struct Control0 : public Register<decltype(Control0_t), Control0_t> {
+    struct SyncMode : public BitField<decltype(Control0_t), Control0_t, 0, 1> {
+      constexpr static typename SyncMode::OPT
+        UART_MODE{0},
+        SPI_MODE{1};
+    };
+    /// Selects async mode when SyncMode = 0.
+    ///   And sync mode when SyncMode = 1.
+    struct USCIMode : public BitField<decltype(Control0_t), Control0_t, 1, 2> {
+      constexpr static typename USCIMode::OPT
+        UART_MODE_or_3pin_SPI{0},
+        IleLine_Multiprocessor_or_4pin_SPI_UCxSTE_active_HIGH{1},
+        AddressBit_Multiprocessor_or_4pin_SPI_UCxSTE_active_LOW{2},
+        AutomaticBaudRate_or_I2C_MODE{3};
+    };
+    struct StopBits_or_MasterMode : public BitField<decltype(Control0_t), Control0_t, 3, 1> {
+      constexpr static typename StopBits_or_MasterMode::OPT
+        ONE_STOP_BIT_or_SLAVE_MODE{0},
+        TWO_STOP_BITS_or_MASTER_MODE{1};
+    };
+    /// UC7BIT
+    ///   Selects 7-bit or 8-bit character length.
+    struct CharacterLength : public BitField<decltype(Control0_t), Control0_t, 4, 1> {
+      constexpr static typename CharacterLength::OPT
+        CHAR_8bit{0},
+        CHAR_7bit{1};
+    };
+    /// UCMSB
+    ///   Controls the direction of the receive and transmit shift register.
+    struct MSBFirst : public BitField<decltype(Control0_t), Control0_t, 5, 1> {
+      constexpr static typename MSBFirst::OPT
+        LSB_FIRST{0},
+        MSB_FIRST{1};
+    };
+    /// UCPAR in Async (UART, Sync = 0)
+    ///   selects parity or is not used when parity is disabled by the last bitfield Parity UCPEN.
+    ///   UCCKPL in Sync (SPI, Sync = 1)
+    ///   selects clock polarity.
+    struct Parity_or_Polarity : public BitField<decltype(Control0_t), Control0_t, 6, 1> {
+      constexpr static typename Parity_or_Polarity::OPT
+        OddParity_or_InactiveStateIsLow{0},
+        EvenParity_or_InactiveStateIsHigh{1};
+    };
+    /// UCPEN in Async (UART, Sync = 0) enables parity: 
+    ///   parity bit is generated (UCAxTXD) and expected (UCAxRXD).
+    ///   In address-bit multiprocessor mode, the address bit is included in the parity calculation.
+    ///   UCCKPL in Sync (SPI, Sync = 1) selects clock phase:
+    ///   data is changed of the first UCLK edge and captured on the following edge,
+    ///   or is captured on the first edge and changed on the following.
+    struct ParityEnable_or_ClockPhaseSelect : public BitField<decltype(Control0_t), Control0_t, 7, 1> {
+      constexpr static typename ParityEnable_or_ClockPhaseSelect::OPT
+        ParityDisable_or_DataChangeCapture{0},
+        ParityEnable_or_DataCaptureChange{1};
+    };
+  };
+};
+
 };
 

@@ -976,6 +976,125 @@ Fields.
 </details>
 </div>
 
+
+USCI, the configuration in `msp430g2553.h`:
+
+<div class="device_template" id="USCI">
+Device template name: <dfn class="cpp_name">USCI</dfn>
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+<li class="register" id="USCI.Control0">
+Name: <dfn>Control0</dfn>. Width: <span class="width">8</span>.
+<span class="comment">The User Guide says the first bit is:
+0 = Asynchronous mode, 1 = Synchronous.
+The header says it is UART and SPI.
+Depending on the bit, the other bit fields set the behavior in these modes.
+In Async Mode (bit = 0, UART), these are Async mode parameters, etc.
+</span>
+<details>
+<summary>
+Fields.
+</summary>
+
+<ul>
+
+<li class="field"> <dfn>SyncMode</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">UART_MODE</data> </span>
+  <span class="value_option"><data value="1">SPI_MODE</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>USCIMode</dfn> <span class="width">2</span>'@<span class="offset">1</span>
+<span class="comment">
+  Selects async mode when SyncMode = 0.
+  And sync mode when SyncMode = 1.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">UART_MODE_or_3pin_SPI</data> </span>
+  <span class="value_option"><data value="1">IleLine_Multiprocessor_or_4pin_SPI_UCxSTE_active_HIGH</data> </span>
+  <span class="value_option"><data value="2">AddressBit_Multiprocessor_or_4pin_SPI_UCxSTE_active_LOW</data> </span>
+  <span class="value_option"><data value="3">AutomaticBaudRate_or_I2C_MODE</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>StopBits_or_MasterMode</dfn> <span class="width">1</span>'@<span class="offset">3</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">ONE_STOP_BIT_or_SLAVE_MODE</data> </span>
+  <span class="value_option"><data value="1">TWO_STOP_BITS_or_MASTER_MODE</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>CharacterLength</dfn> <span class="width">1</span>'@<span class="offset">4</span>
+<span class="comment">
+  <code>UC7BIT</code>
+  Selects 7-bit or 8-bit character length.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">CHAR_8bit</data> </span>
+  <span class="value_option"><data value="1">CHAR_7bit</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>MSBFirst</dfn> <span class="width">1</span>'@<span class="offset">5</span>
+<span class="comment">
+  <code>UCMSB</code>
+  Controls the direction of the receive and transmit shift register.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">LSB_FIRST</data> </span>
+  <span class="value_option"><data value="1">MSB_FIRST</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>Parity_or_Polarity</dfn> <span class="width">1</span>'@<span class="offset">6</span>
+<span class="comment">
+  <code>UCPAR</code> in Async (UART, Sync = 0)
+  selects parity or is not used when parity is disabled by the last bitfield Parity <code>UCPEN</code>.
+  <code>UCCKPL</code> in Sync (SPI, Sync = 1)
+  selects clock polarity.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">OddParity_or_InactiveStateIsLow</data> </span>
+  <span class="value_option"><data value="1">EvenParity_or_InactiveStateIsHigh</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ParityEnable_or_ClockPhaseSelect</dfn> <span class="width">1</span>'@<span class="offset">7</span>
+<span class="comment">
+  <code>UCPEN</code> in Async (UART, Sync = 0) enables parity: 
+  parity bit is generated (UCAxTXD) and expected (UCAxRXD).
+  In address-bit multiprocessor mode, the address bit is included in the parity calculation.
+  <code>UCCKPL</code> in Sync (SPI, Sync = 1) selects clock phase:
+  data is changed of the first UCLK edge and captured on the following edge,
+  or is captured on the first edge and changed on the following.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">ParityDisable_or_DataChangeCapture</data> </span>
+  <span class="value_option"><data value="1">ParityEnable_or_DataCaptureChange</data> </span>
+</details>
+</li>
+
+</ul>
+</details>
+</li>
+
+</ul>
+</details>
+</div>
+
 TODO:
 
 * USCI.

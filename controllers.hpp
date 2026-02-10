@@ -42,6 +42,8 @@ namespace MSP430G2553 {
 
     using FlashMemoryModule = regmaps::FlashMemoryModule<FCTL1, FCTL2, FCTL3>;
 
+    using USCI = regmaps::USCI<UCA0CTL0>;
+
     /// Special Function Registers
     namespace SFRs {
         struct InterruptEnable1 : public Register<decltype(IE1), IE1> {
