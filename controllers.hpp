@@ -49,6 +49,12 @@ namespace MSP430G2553 {
     using USCI_B = regmaps::USCI_B<UCB0CTL0, UCB0CTL1, UCB0BR0, UCB0BR1,
           UCB0I2CIE, UCB0STAT, UCB0RXBUF, UCB0TXBUF, UCB0I2COA, UCB0I2CSA>;
 
+    using WatchdogTimer = regmaps::WatchdogTimer<WDTCTL>;
+
+    using CalibrationData = regmaps::CalibrationData<CALDCO_16MHZ, CALBC1_16MHZ,
+          CALDCO_12MHZ, CALBC1_12MHZ, CALDCO_8MHZ, CALBC1_8MHZ, CALDCO_1MHZ, CALBC1_1MHZ,
+          TLV_CHECKSUM, TLV_DCO_30_TAG, TLV_DCO_30_LEN, TLV_ADC10_1_TAG, TLV_ADC10_1_LEN>;
+
     /// Special Function Registers
     namespace SFRs {
         struct InterruptEnable1 : public Register<decltype(IE1), IE1> {

@@ -1969,6 +1969,183 @@ Can be modified only when <code>UCSWRST = 1</code>.
 </div>
 
 
+Watchdog timer.
+The configuration in `msp430g2553.h` and the User Guide slau208q:
+
+<div class="device_template" id="WatchdogTimer">
+Device template name: <dfn class="cpp_name">WatchdogTimer</dfn>
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+
+<li class="register" id="WatchdogTimer.Control">
+Name: <dfn>Control</dfn>. Width: <span class="width">16</span>.
+<span class="comment">
+<code>WDTCTL</code>
+The lower byte is the control, the higher byte is the password:
+<code>WDTPW = 0x5A</code> (always reads as <code>0x69</code>).
+</span>
+
+<details>
+<summary>Bit fields.</summary>
+<ul>
+
+<li class="field"> <dfn>TimerIntervalSelect</dfn> <span class="width">3</span>'@<span class="offset">0</span>
+<span class="comment">
+  <code>WDTIS</code> Select the watchdog timer interval
+  to set <code>WDTIFG</code> flag or generate a PUC.
+  The User Guide says it is a 3-bit field.
+  But the <code></code> header says the third bit is <code>WDTSSEL</code> - source clock select?
+  But the User Guide says the clock select field <code>WDTSSEL</code> is at 5-6 bits.
+  I go with the Guide.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">CLOCK_DIV_2e31</data> <span class="comment">18h:12m:16s at 32.768 kHz</span> </span>
+  <span class="value_option"><data value="1">CLOCK_DIV_2e27</data> <span class="comment">01h:08m:16s at 32.768 kHz</span> </span>
+  <span class="value_option"><data value="2">CLOCK_DIV_2e23</data> <span class="comment">00h:04m:16s at 32.768 kHz</span> </span>
+  <span class="value_option"><data value="3">CLOCK_DIV_2e19</data> <span class="comment">00h:00m:16s at 32.768 kHz</span> </span>
+  <span class="value_option"><data value="4">CLOCK_DIV_2e15</data> <span class="comment">1s at 32.768 kHz</span> </span>
+  <span class="value_option"><data value="5">CLOCK_DIV_2e13</data> <span class="comment">250ms at 32.768 kHz</span> </span>
+  <span class="value_option"><data value="6">CLOCK_DIV_2e9</data> <span class="comment">15.625ms at 32.768 kHz</span> </span>
+  <span class="value_option"><data value="7">CLOCK_DIV_2e6</data> <span class="comment">1.95ms at 32.768 kHz</span> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>CounterClear</dfn> <span class="width">1</span>'@<span class="offset">3</span>
+<span class="comment"> <code>WDTCNTCL</code> clears the count value to 0.  </span>
+</li>
+
+<li class="field"> <dfn>ModeSelect</dfn> <span class="width">1</span>'@<span class="offset">4</span>
+<span class="comment"> <code>WDTTMSEL</code> </span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">WATCHDOG</data> </span>
+  <span class="value_option"><data value="1">INTERVAL_TIMER</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ClockSource</dfn> <span class="width">2</span>'@<span class="offset">5</span>
+<span class="comment"> <code>WDTSSEL</code> </span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">SMCLK</data> </span>
+  <span class="value_option"><data value="1">ACLK</data> </span>
+  <span class="value_option"><data value="2">VLOCLK</data> </span>
+  <span class="value_option"><data value="3">X_CLK</data>
+  <span class="comment"> <code>VLOCLK</code> in devices that do not use <code>X_CLK</code> </span>
+  </span>
+</details>
+</li>
+
+<li class="field"> <dfn>TimerHold</dfn> <span class="width">1</span>'@<span class="offset">7</span>
+<span class="comment"> <code>WDTHOLD</code> Stops the watchdog timer.
+<code>WDTHOLD = 1</code> when WDT is not in use conserves power.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">NOT_STOPPED</data> </span>
+  <span class="value_option"><data value="1">STOPPED</data> </span>
+</details>
+</li>
+
+</ul>
+</details>
+</li>
+
+</ul>
+</details>
+</div>
+
+Calibration data:
+
+<div class="device_template" id="CalibrationData">
+Device template name: <dfn class="cpp_name">CalibrationData</dfn>
+
+<details>
+<summary>
+Registers.
+</summary>
+
+<ul>
+
+<li class="register" id="CalibrationData.DCO_16MHZ">
+Name: <dfn>DCO_16MHZ</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>CALDCO_16MHZ</code> DCOCTL Calibration Data for 16MHz.  </span>
+</li>
+
+<li class="register" id="CalibrationData.BC1_16MHZ">
+Name: <dfn>BC1_16MHZ</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>CALBC1_16MHZ</code> BCSCTL1 Calibration Data for 16MHz.  </span>
+</li>
+
+<li class="register" id="CalibrationData.DCO_12MHZ">
+Name: <dfn>DCO_12MHZ</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>CALDCO_12MHZ</code> DCOCTL Calibration Data for 12MHz.  </span>
+</li>
+
+<li class="register" id="CalibrationData.BC1_12MHZ">
+Name: <dfn>BC1_12MHZ</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>CALBC1_12MHZ</code> BCSCTL1 Calibration Data for 12MHz.  </span>
+</li>
+
+<li class="register" id="CalibrationData.DCO_8MHZ">
+Name: <dfn>DCO_8MHZ</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>CALDCO_8MHZ</code> DCOCTL Calibration Data for 8MHz.  </span>
+</li>
+
+<li class="register" id="CalibrationData.BC1_8MHZ">
+Name: <dfn>BC1_8MHZ</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>CALBC1_8MHZ</code> BCSCTL1 Calibration Data for 8MHz.  </span>
+</li>
+
+<li class="register" id="CalibrationData.DCO_1MHZ">
+Name: <dfn>DCO_1MHZ</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>CALDCO_1MHZ</code> DCOCTL Calibration Data for 1MHz.  </span>
+</li>
+
+<li class="register" id="CalibrationData.BC1_1MHZ">
+Name: <dfn>BC1_1MHZ</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>CALBC1_1MHZ</code> BCSCTL1 Calibration Data for 1MHz.  </span>
+</li>
+
+<li class="register" id="CalibrationData.TLVChecksum">
+Name: <dfn>TLVChecksum</dfn>. Width: <span class="width">16</span>.
+<span class="comment"> <code>TLV_CHECKSUM</code> TLV check sum  </span>
+</li>
+
+<li class="register" id="CalibrationData.TLVDCO30Tag">
+Name: <dfn>TLVDCO30Tag</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>TLV_DCO_30_TAG</code> TLV TAG_DCO30 tag  </span>
+</li>
+
+<li class="register" id="CalibrationData.TLVDCO30Len">
+Name: <dfn>TLVDCO30Len</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>TLV_DCO_30_LEN</code> TLV TAG_DCO30 len  </span>
+</li>
+
+<li class="register" id="CalibrationData.TLVADC10Tag">
+Name: <dfn>TLVADC10Tag</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>TLV_ADC10_1_TAG</code> TLV ADC10_1 tag  </span>
+</li>
+
+<li class="register" id="CalibrationData.TLVADC10Len">
+Name: <dfn>TLVADC10Len</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>TLV_ADC10_1_LEN</code> TLV ADC10_1 len  </span>
+</li>
+
+</ul>
+</details>
+</div>
+
 TODO:
 
 * `USCI_B` seems to have the same registers and bit field mapping as A.
@@ -1976,8 +2153,7 @@ TODO:
   in the `msp430g2553.h` header.
   + Neither regs `UCBxIE` and `UCBxIFG` and `UCBxIV`?
   + Where is `UCSWRST`?
-* Watchdog timer.
-* Calibration data.
+* Calibration data -- check what is DCO30. (ADC10 is clear.)
 * Flash Memory: Check the datasheet for MSP430G2553.
 The registers are not entirely clear.
 Where is `Control2` in the slau208q User Guide?

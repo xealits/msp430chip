@@ -1007,5 +1007,96 @@ struct USCI_B {
   };
 };
 
+template<volatile unsigned int& Control_t>
+struct WatchdogTimer {
+  WatchdogTimer() = delete;
+
+  struct Control : public Register<decltype(Control_t), Control_t> {
+    /// WDTIS Select the watchdog timer interval
+    ///   to set WDTIFG flag or generate a PUC.
+    ///   The User Guide says it is a 3-bit field.
+    ///   But the  header says the third bit is WDTSSEL - source clock select?
+    ///   But the User Guide says the clock select field WDTSSEL is at 5-6 bits.
+    ///   I go with the Guide.
+    struct TimerIntervalSelect : public BitField<decltype(Control_t), Control_t, 0, 3> {
+      constexpr static typename TimerIntervalSelect::OPT
+        CLOCK_DIV_2e31{0} /** 18h:12m:16s at 32.768 kHz */,
+        CLOCK_DIV_2e27{1} /** 01h:08m:16s at 32.768 kHz */,
+        CLOCK_DIV_2e23{2} /** 00h:04m:16s at 32.768 kHz */,
+        CLOCK_DIV_2e19{3} /** 00h:00m:16s at 32.768 kHz */,
+        CLOCK_DIV_2e15{4} /** 1s at 32.768 kHz */,
+        CLOCK_DIV_2e13{5} /** 250ms at 32.768 kHz */,
+        CLOCK_DIV_2e9{6} /** 15.625ms at 32.768 kHz */,
+        CLOCK_DIV_2e6{7} /** 1.95ms at 32.768 kHz */;
+    };
+    /// WDTCNTCL clears the count value to 0.
+    struct CounterClear : public BitField<decltype(Control_t), Control_t, 3, 1> {};
+    /// WDTTMSEL
+    struct ModeSelect : public BitField<decltype(Control_t), Control_t, 4, 1> {
+      constexpr static typename ModeSelect::OPT
+        WATCHDOG{0},
+        INTERVAL_TIMER{1};
+    };
+    /// WDTSSEL
+    struct ClockSource : public BitField<decltype(Control_t), Control_t, 5, 2> {
+      constexpr static typename ClockSource::OPT
+        SMCLK{0},
+        ACLK{1},
+        VLOCLK{2},
+        X_CLK{3} /** VLOCLK in devices that do not use X_CLK */;
+    };
+    /// WDTHOLD Stops the watchdog timer.
+    /// WDTHOLD = 1 when WDT is not in use conserves power.
+    struct TimerHold : public BitField<decltype(Control_t), Control_t, 7, 1> {
+      constexpr static typename TimerHold::OPT
+        NOT_STOPPED{0},
+        STOPPED{1};
+    };
+  };
+};
+
+template<volatile unsigned char& DCO_16MHZ_t,
+         volatile unsigned char& BC1_16MHZ_t,
+         volatile unsigned char& DCO_12MHZ_t,
+         volatile unsigned char& BC1_12MHZ_t,
+         volatile unsigned char& DCO_8MHZ_t,
+         volatile unsigned char& BC1_8MHZ_t,
+         volatile unsigned char& DCO_1MHZ_t,
+         volatile unsigned char& BC1_1MHZ_t,
+         volatile unsigned int& TLVChecksum_t,
+         volatile unsigned char& TLVDCO30Tag_t,
+         volatile unsigned char& TLVDCO30Len_t,
+         volatile unsigned char& TLVADC10Tag_t,
+         volatile unsigned char& TLVADC10Len_t>
+struct CalibrationData {
+  CalibrationData() = delete;
+
+  struct DCO_16MHZ : public Register<decltype(DCO_16MHZ_t), DCO_16MHZ_t> {};
+
+  struct BC1_16MHZ : public Register<decltype(BC1_16MHZ_t), BC1_16MHZ_t> {};
+
+  struct DCO_12MHZ : public Register<decltype(DCO_12MHZ_t), DCO_12MHZ_t> {};
+
+  struct BC1_12MHZ : public Register<decltype(BC1_12MHZ_t), BC1_12MHZ_t> {};
+
+  struct DCO_8MHZ : public Register<decltype(DCO_8MHZ_t), DCO_8MHZ_t> {};
+
+  struct BC1_8MHZ : public Register<decltype(BC1_8MHZ_t), BC1_8MHZ_t> {};
+
+  struct DCO_1MHZ : public Register<decltype(DCO_1MHZ_t), DCO_1MHZ_t> {};
+
+  struct BC1_1MHZ : public Register<decltype(BC1_1MHZ_t), BC1_1MHZ_t> {};
+
+  struct TLVChecksum : public Register<decltype(TLVChecksum_t), TLVChecksum_t> {};
+
+  struct TLVDCO30Tag : public Register<decltype(TLVDCO30Tag_t), TLVDCO30Tag_t> {};
+
+  struct TLVDCO30Len : public Register<decltype(TLVDCO30Len_t), TLVDCO30Len_t> {};
+
+  struct TLVADC10Tag : public Register<decltype(TLVADC10Tag_t), TLVADC10Tag_t> {};
+
+  struct TLVADC10Len : public Register<decltype(TLVADC10Len_t), TLVADC10Len_t> {};
+};
+
 };
 
