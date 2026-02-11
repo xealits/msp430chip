@@ -91,13 +91,57 @@ struct TimerA {
   using CaptureCompareBlock = typename CaptureCompareBlock_t::template DevByIndex<dev_i>;
 };
 
-template<>
+/// IO port control with SEL and
+/// SEL2. Two SEL bits are described in slau144k, but not in
+/// the older slau208q. SEL2 adds more peripheral functions to the port
+/// pins. If SEL2 bit is set to 0b0, SEL works as usual (as in slau208q):
+/// 0b0 for I/O and 0b1 for the (primary) peripheral functions. If SEL2 is
+/// set to 0b1, then SEL picks other peripheral functions: 0b0 for the
+/// secondary peripheral, 0b1 for the tertiary.
+template<volatile unsigned char& p_in_t,
+         volatile unsigned char& p_out_t,
+         volatile unsigned char& p_dir_t,
+         volatile unsigned char& p_sel_t,
+         volatile unsigned char& p_sel2_t,
+         volatile unsigned char& p_en_t>
 struct PortIO8bit {
   PortIO8bit() = delete;
 
+  struct p_in : public Register<decltype(p_in_t), p_in_t> {};
 
+  struct p_out : public Register<decltype(p_out_t), p_out_t> {};
+
+  /// 0b0 = input, 0b1 = output
+  struct p_dir : public Register<decltype(p_dir_t), p_dir_t> {};
+
+  /// Port function selection:
+  ///   0b0 = I/O (or peripheral secondary)
+  ///   or
+  ///   0b1 = peripheral primary (or peripheral tertiary).
+  struct p_sel : public Register<decltype(p_sel_t), p_sel_t> {};
+
+  /// Two SEL bits are described in slau144k, but not in the older slau208q.
+  ///   SEL2 adds more peripheral functions to the port pins.
+  ///   If SEL2 bit is set to 0b0, SEL works as usual (as in slau208q):
+  ///   0b for I/O and 0b1 for the (primary) peripheral functions.
+  ///   If SEL2 is set to 0b1, then SEL picks other peripheral functions:
+  ///   0b for the secondary peripheral, 0b1 for the tertiary.
+  struct p_sel2 : public Register<decltype(p_sel2_t), p_sel2_t> {};
+
+  /// Port x pullup or pulldown resistor enable. When respective port is configured as
+  ///   input, setting this bit will enable the pullup or pulldown. See Table 12-1
+  ///   0b = Pullup or pulldown disabled
+  ///   1b = Pullup or pulldown enabled
+  struct p_en : public Register<decltype(p_en_t), p_en_t> {};
 };
 
+/// IO port control with SEL and
+/// SEL2. Two SEL bits are described in slau144k, but not in
+/// the older slau208q. SEL2 adds more peripheral functions to the port
+/// pins. If SEL2 bit is set to 0b0, SEL works as usual (as in slau208q):
+/// 0b0 for I/O and 0b1 for the (primary) peripheral functions. If SEL2 is
+/// set to 0b1, then SEL picks other peripheral functions: 0b0 for the
+/// secondary peripheral, 0b1 for the tertiary.
 template<volatile unsigned char& p_in_t,
          volatile unsigned char& p_out_t,
          volatile unsigned char& p_dir_t,
@@ -114,12 +158,28 @@ struct PortIO8bitI {
 
   struct p_out : public Register<decltype(p_out_t), p_out_t> {};
 
+  /// 0b0 = input, 0b1 = output
   struct p_dir : public Register<decltype(p_dir_t), p_dir_t> {};
 
+  /// Port function selection:
+  ///   0b0 I/O (or peripheral secondary)
+  ///   or
+  ///   0b1 peripheral primary (or peripheral tertiary).
   struct p_sel : public Register<decltype(p_sel_t), p_sel_t> {};
 
+  /// Two SEL bits are described in slau144k, but not in the older slau208q.
+  ///   SEL2 adds more peripheral functions to the port pins.
+
+  ///   If SEL2 bit is set to 0b0, SEL works as usual (as in slau208q):
+  ///   0b for I/O and 1b for the (primary) peripheral functions.
+  ///   If SEL2 is set to 0b1, then SEL picks other peripheral functions:
+  ///   0b for the secondary peripheral, 1b for the tertiary.
   struct p_sel2 : public Register<decltype(p_sel2_t), p_sel2_t> {};
 
+  /// Port x pullup or pulldown resistor enable. When respective port is configured as
+  ///   input, setting this bit will enable the pullup or pulldown. See Table 12-1
+  ///   0b = Pullup or pulldown disabled
+  ///   1b = Pullup or pulldown enabled
   struct p_en : public Register<decltype(p_en_t), p_en_t> {};
 
   struct p_ifg : public Register<decltype(p_ifg_t), p_ifg_t> {};
@@ -524,6 +584,11 @@ template<volatile unsigned char& Control0_t,
 struct USCI_A {
   USCI_A() = delete;
 
+  /// The User Guide says the first bit is:
+  /// 0 = Asynchronous mode, 1 = Synchronous.
+  /// The header says it is UART and SPI.
+  /// Depending on the bit, the other bit fields set the behavior in these modes.
+  /// In Async Mode (bit = 0, UART), these are Async mode parameters, etc.
   struct Control0 : public Register<decltype(Control0_t), Control0_t> {
     struct SyncMode : public BitField<decltype(Control0_t), Control0_t, 0, 1> {
       constexpr static typename SyncMode::OPT
@@ -580,6 +645,12 @@ struct USCI_A {
     };
   };
 
+  /// According to Sync mode,
+  /// 0 = Asynchronous mode (UART) and 1 = Synchronous (SPI),
+  /// only few bit fields are used in Sync (SPI) mode.
+  /// So, when there is no `_or_` in a bitfield name,
+  /// the bitfield is used only in Async (UART) mode
+  /// or it has the same meaning in both modes.
   struct Control1 : public Register<decltype(Control1_t), Control1_t> {
     /// Valid in both modes.
     ///   When enabled (=1), the USCI logic is held in reset state.
@@ -643,10 +714,24 @@ struct USCI_A {
     struct ClockSource : public BitField<decltype(Control1_t), Control1_t, 6, 2> {};
   };
 
+  /// UCAxBR0
+  /// Low byte of clock prescaler setting of the baud-rate generator.
+  /// The 16-bit value of BaudRate0 + BaudRate1 \* 256
+  /// forms the prescaler value UCBRx.
+  /// f_bitclock = f_brclk / UCBRx
+  /// UCBRx = 0 => f_bitclock = f_brclk
   struct BaudRate0 : public Register<decltype(BaudRate0_t), BaudRate0_t> {};
 
+  /// UCAxBR1
+  /// High byte of clock prescaler setting of the baud-rate generator.
+  /// The 16-bit value of BaudRate0 + BaudRate1 \* 256
+  /// forms the prescaler value UCBRx.
+  /// f_bitclock = f_brclk / UCBRx
+  /// UCBRx = 0 => f_bitclock = f_brclk
   struct BaudRate1 : public Register<decltype(BaudRate1_t), BaudRate1_t> {};
 
+  /// UCAxMCTL
+  /// Valid only in UART (Async) mode.
   struct ModulationControl : public Register<decltype(ModulationControl_t), ModulationControl_t> {
     /// UCOS16
     struct OversamplingEnable : public BitField<decltype(ModulationControl_t), ModulationControl_t, 0, 1> {};
@@ -660,6 +745,9 @@ struct USCI_A {
     struct FirstModulationStageSelect : public BitField<decltype(ModulationControl_t), ModulationControl_t, 4, 4> {};
   };
 
+  /// UCAxSTAT
+  /// Most bits are valid only for UART (Async).
+  /// The others are common to UART (Async) and SPI (SYNC) modes.
   struct Status : public Register<decltype(Status_t), Status_t> {
     /// UCBUSY Common to both modes.
     ///   Indicated if a transmit or receive operation is in progress.
@@ -720,10 +808,22 @@ struct USCI_A {
     struct ListenEnable : public BitField<decltype(Status_t), Status_t, 7, 1> {};
   };
 
+  /// UCAxRXBUF
+  /// The receive-data buffer is user-accessible and contains the last received character from the receive shift register.
+  /// Reading UCAxRXBUF resets the receive-error bits,
+  /// the Address/Idle UCADDR/UCIDLE bit, and the UCRXIFG (which I do not find in the header).
+  /// In 7-bit data mode, UCAxRXBUF is LSB justified and the MSB is always reset.
   struct RXBuffer : public Register<decltype(RXBuffer_t), RXBuffer_t> {};
 
+  /// UCAxTXBUF
+  /// The transmit-data buffer is user-accessible and contains the data waiting to be moved into the transmit shift register
+  /// and transmitted on UCAxTXD.
+  /// Writing to UCAxTXBUF clears UCTXIFG (which I do not find in the header).
+  /// The MSB of UCAxTXBUF is not used for 7-bit data and is reset.
   struct TXBuffer : public Register<decltype(TXBuffer_t), TXBuffer_t> {};
 
+  /// UCAxABCTL Only UART mode.
+  /// For some reason, the header calls it "LIN Control".
   struct AutoBaudRateControl : public Register<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t> {
     /// UCABDEN
     ///   Automatic baud-rate detect enable.
@@ -750,6 +850,8 @@ struct USCI_A {
     struct Reserved6 : public BitField<decltype(AutoBaudRateControl_t), AutoBaudRateControl_t, 6, 2> {};
   };
 
+  /// UCAxIRTCTL Only UART mode.
+  /// USCI_Ax IrDA Transmit Control Register.
   struct IrDATransmitControl : public Register<decltype(IrDATransmitControl_t), IrDATransmitControl_t> {
     struct EncoderDecoderEnable : public BitField<decltype(IrDATransmitControl_t), IrDATransmitControl_t, 0, 1> {};
     struct TransmitPulseClockSelect : public BitField<decltype(IrDATransmitControl_t), IrDATransmitControl_t, 1, 1> {
@@ -763,6 +865,8 @@ struct USCI_A {
     struct TransmitLength : public BitField<decltype(IrDATransmitControl_t), IrDATransmitControl_t, 2, 6> {};
   };
 
+  /// UCAxIRRCTL Only UART mode.
+  /// USCI_Ax IrDA Receive Control Register.
   struct IrDAReceiveControl : public Register<decltype(IrDAReceiveControl_t), IrDAReceiveControl_t> {
     struct FilterEnable : public BitField<decltype(IrDAReceiveControl_t), IrDAReceiveControl_t, 0, 1> {};
     struct Polarity : public BitField<decltype(IrDAReceiveControl_t), IrDAReceiveControl_t, 1, 1> {
@@ -790,6 +894,7 @@ template<volatile unsigned char& Control0_t,
 struct USCI_B {
   USCI_B() = delete;
 
+  /// UCB0CTL0
   struct Control0 : public Register<decltype(Control0_t), Control0_t> {
     /// UCSYNC
     /// Not sure what this one means here.
@@ -851,6 +956,7 @@ struct USCI_B {
     };
   };
 
+  /// UCBxCTL1
   struct Control1 : public Register<decltype(Control1_t), Control1_t> {
     /// Valid in both modes.
     ///   When enabled (=1), the USCI logic is held in reset state.
@@ -903,10 +1009,23 @@ struct USCI_B {
     };
   };
 
+  /// UCBxBR0
+  /// Low byte of clock prescaler setting of the baud-rate generator.
+  /// The 16-bit value of BaudRate0 + BaudRate1 \* 256
+  /// forms the prescaler value UCBRx.
+  /// f_bitclock = f_brclk / UCBRx
+  /// UCBRx = 0 => f_bitclock = f_brclk
   struct BaudRate0 : public Register<decltype(BaudRate0_t), BaudRate0_t> {};
 
+  /// UCBxBR1
+  /// High byte of clock prescaler setting of the baud-rate generator.
+  /// The 16-bit value of BaudRate0 + BaudRate1 \* 256
+  /// forms the prescaler value UCBRx.
+  /// f_bitclock = f_brclk / UCBRx
+  /// UCBRx = 0 => f_bitclock = f_brclk
   struct BaudRate1 : public Register<decltype(BaudRate1_t), BaudRate1_t> {};
 
+  /// UCBxIE or UCBxI2CIE in the msp430g2552.h header.
   struct I2CInterruptEnable : public Register<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t> {
     /// UCRXIE
     struct ReceiveIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 0, 1> {};
@@ -924,6 +1043,10 @@ struct USCI_B {
     struct Reserved : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 6, 2> {};
   };
 
+  /// UCBxSTAT
+  /// Can be modified only when UCSWRST = 1.
+  /// Most bits are valid only for I2C.
+  /// The others are common to I2C and SPI modes.
   struct Status : public Register<decltype(Status_t), Status_t> {
     /// UCBUSY only SPI.
     ///   Indicated if a transmit or receive operation is in progress.
@@ -961,10 +1084,22 @@ struct USCI_B {
     struct ListenEnable : public BitField<decltype(Status_t), Status_t, 7, 1> {};
   };
 
+  /// UCBxRXBUF
+  /// The receive-data buffer is user-accessible and contains the last received character from the receive shift register.
+  /// Reading UCBxRXBUF resets the receive-error bits,
+  /// the Address/Idle UCADDR/UCIDLE bit, and the UCRXIFG (which I do not find in the header).
+  /// In 7-bit data mode, UCBxRXBUF is LSB justified and the MSB is always reset.
   struct RXBuffer : public Register<decltype(RXBuffer_t), RXBuffer_t> {};
 
+  /// UCBxTXBUF
+  /// The transmit-data buffer is user-accessible and contains the data waiting to be moved into the transmit shift register
+  /// and transmitted on UCAxTXD.
+  /// Writing to UCBxTXBUF clears UCTXIFG (which I do not find in the header).
+  /// The MSB of UCBxTXBUF is not used for 7-bit data and is reset.
   struct TXBuffer : public Register<decltype(TXBuffer_t), TXBuffer_t> {};
 
+  /// UCBxI2COA
+  /// Can be modified only when UCSWRST = 1.
   struct I2COwnAddress : public Register<decltype(I2COwnAddress_t), I2COwnAddress_t> {
     /// I2COAx I2C own address, the local address of
     ///   the USCI_Bx I2C controller.
@@ -981,6 +1116,8 @@ struct USCI_B {
     };
   };
 
+  /// UCBxI2CSA
+  /// Can be modified only when UCSWRST = 1.
   struct I2CSlaveAddress : public Register<decltype(I2CSlaveAddress_t), I2CSlaveAddress_t> {
     /// I2CSAx I2C slave address of the external device to be addressed by
     ///   the USCI_Bx module. It is only used in master mode.
@@ -996,6 +1133,9 @@ template<volatile unsigned int& Control_t>
 struct WatchdogTimer {
   WatchdogTimer() = delete;
 
+  /// WDTCTL
+  /// The lower byte is the control, the higher byte is the password:
+  /// WDTPW = 0x5A (always reads as 0x69).
   struct Control : public Register<decltype(Control_t), Control_t> {
     /// WDTIS Select the watchdog timer interval
     ///   to set WDTIFG flag or generate a PUC.
@@ -1056,30 +1196,43 @@ template<volatile unsigned char& DCO_16MHZ_t,
 struct CalibrationData {
   CalibrationData() = delete;
 
+  /// CALDCO_16MHZ DCOCTL Calibration Data for 16MHz.
   struct DCO_16MHZ : public Register<decltype(DCO_16MHZ_t), DCO_16MHZ_t> {};
 
+  /// CALBC1_16MHZ BCSCTL1 Calibration Data for 16MHz.
   struct BC1_16MHZ : public Register<decltype(BC1_16MHZ_t), BC1_16MHZ_t> {};
 
+  /// CALDCO_12MHZ DCOCTL Calibration Data for 12MHz.
   struct DCO_12MHZ : public Register<decltype(DCO_12MHZ_t), DCO_12MHZ_t> {};
 
+  /// CALBC1_12MHZ BCSCTL1 Calibration Data for 12MHz.
   struct BC1_12MHZ : public Register<decltype(BC1_12MHZ_t), BC1_12MHZ_t> {};
 
+  /// CALDCO_8MHZ DCOCTL Calibration Data for 8MHz.
   struct DCO_8MHZ : public Register<decltype(DCO_8MHZ_t), DCO_8MHZ_t> {};
 
+  /// CALBC1_8MHZ BCSCTL1 Calibration Data for 8MHz.
   struct BC1_8MHZ : public Register<decltype(BC1_8MHZ_t), BC1_8MHZ_t> {};
 
+  /// CALDCO_1MHZ DCOCTL Calibration Data for 1MHz.
   struct DCO_1MHZ : public Register<decltype(DCO_1MHZ_t), DCO_1MHZ_t> {};
 
+  /// CALBC1_1MHZ BCSCTL1 Calibration Data for 1MHz.
   struct BC1_1MHZ : public Register<decltype(BC1_1MHZ_t), BC1_1MHZ_t> {};
 
+  /// TLV_CHECKSUM TLV check sum
   struct TLVChecksum : public Register<decltype(TLVChecksum_t), TLVChecksum_t> {};
 
+  /// TLV_DCO_30_TAG TLV TAG_DCO30 tag
   struct TLVDCO30Tag : public Register<decltype(TLVDCO30Tag_t), TLVDCO30Tag_t> {};
 
+  /// TLV_DCO_30_LEN TLV TAG_DCO30 len
   struct TLVDCO30Len : public Register<decltype(TLVDCO30Len_t), TLVDCO30Len_t> {};
 
+  /// TLV_ADC10_1_TAG TLV ADC10_1 tag
   struct TLVADC10Tag : public Register<decltype(TLVADC10Tag_t), TLVADC10Tag_t> {};
 
+  /// TLV_ADC10_1_LEN TLV ADC10_1 len
   struct TLVADC10Len : public Register<decltype(TLVADC10Len_t), TLVADC10Len_t> {};
 };
 

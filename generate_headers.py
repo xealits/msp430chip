@@ -113,6 +113,7 @@ class RegField:
 class Register:
     name: str
     width: int = 16
+    comment: str = ""
     fields: dict = field(default_factory=dict)
 
     def __getattr__(self, name):
@@ -129,6 +130,8 @@ class Register:
             body = "{}"
 
         contents = reg_template.format(name=self.name, reg_ref=reg_ref, body=body)
+        if self.comment:
+            contents = indent(self.comment, "/// ") + "\n" + contents
         return indent(contents, "  "*indentation)
 
 # TODO: there are 2 types of devices: unique and templates
@@ -140,6 +143,7 @@ class Register:
 @dataclass
 class Device:
     name: str
+    comment: str = ""
     registers: dict = field(default_factory=dict)
     subdev_names: list = field(default_factory=list)
 
@@ -177,11 +181,14 @@ class Device:
             all_defs += "\n" + "\n\n".join(dev_defs)
 
         contents = device_template.format(name=self.name, reg_declarations=all_decls, device_defs=all_defs)
+        if self.comment:
+            contents = "\n" + indent(self.comment, "/// ") + contents
         return indent(contents, "  "*indentation)
 
 @dataclass
 class SubDevice(Device):
     name: str
+    comment: str
     registers: dict = field(default_factory=dict)
     subdev_names: list = field(default_factory=list)
 
@@ -201,6 +208,8 @@ class SubDevice(Device):
         # TODO: add sub-devices
 
         cpp = subdev_decl_template.format(name=self.name, dev_refs=dev_refs, dev_refs_used=dev_refs_used, dev_defs=dev_defs)
+        if self.comment:
+            cpp = + "\n" + indent(self.comment, "/// ") + cpp
         return cpp
 
 def parse_field(bs_elem):
@@ -241,17 +250,22 @@ def parse_field(bs_elem):
 def parse_register(bs_elem):
     name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
     width = bs_elem.select_one(":scope span.width:not(:scope details span.width)")
+    comment = bs_elem.select_one(":scope span.comment:not(:scope details span.comment)")
+
     if width:
         width = int(width.text.strip())
     else:
         width = 16  # TODO: add to data-sheet
+
+    if comment:
+        comment = comment.text.strip()
 
     #cpp_type = {32: "uint32_t"}[width]
     #reg_info = {"width": width, "cpp_type": cpp_type}
 
     # reg fields
     reg_fields = {}
-    reg = Register(name, width, reg_fields)
+    reg = Register(name, width, comment, reg_fields)
 
     substr = bs_elem.select_one(":scope details")
     bs_fields = []
@@ -267,15 +281,19 @@ def parse_register(bs_elem):
 
 def parse_device_template(bs_elem, known_templates={}, toplevel=False):
     dev_name = bs_elem.select_one(":scope dfn:not(:scope details dfn)").text.strip()
+    dev_comment = bs_elem.select_one(":scope span.comment:not(:scope details span.comment)")
     if dev_name in device_templates:
         raise Exception(f"Device template {dev_name} already exists")
+
+    if dev_comment:
+        dev_comment = dev_comment.text.strip()
 
     dev_registers = {}
     dev_subdev_names = []
     if toplevel:
-        templ = Device(dev_name, dev_registers, dev_subdev_names)
+        templ = Device(dev_name, dev_comment, dev_registers, dev_subdev_names)
     else:
-        templ = SubDevice(dev_name, dev_registers, dev_subdev_names)
+        templ = SubDevice(dev_name, dev_comment, dev_registers, dev_subdev_names)
     known_templates[dev_name] = templ
 
     substr = bs_elem.select_one(":scope details")
