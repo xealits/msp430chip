@@ -1,5 +1,5 @@
 /// Example of using msp430chip templates in
-/// and interrupt-based LED blinking on MSP_EXP430G2 board
+/// interrupt-based LED blinking on MSP_EXP430G2 board
 /// with a 20-pin MSP430G2553.
 /// Compiled from the most basic busy-loop example from Ti
 /// plus their ULP recommendations for the interrupts.
