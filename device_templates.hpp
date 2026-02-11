@@ -91,26 +91,11 @@ struct TimerA {
   using CaptureCompareBlock = typename CaptureCompareBlock_t::template DevByIndex<dev_i>;
 };
 
-template<volatile unsigned char& p_in_t,
-         volatile unsigned char& p_out_t,
-         volatile unsigned char& p_dir_t,
-         volatile unsigned char& p_sel_t,
-         volatile unsigned char& p_sel2_t,
-         volatile unsigned char& p_en_t>
+template<>
 struct PortIO8bit {
   PortIO8bit() = delete;
 
-  struct p_in : public Register<decltype(p_in_t), p_in_t> {};
 
-  struct p_out : public Register<decltype(p_out_t), p_out_t> {};
-
-  struct p_dir : public Register<decltype(p_dir_t), p_dir_t> {};
-
-  struct p_sel : public Register<decltype(p_sel_t), p_sel_t> {};
-
-  struct p_sel2 : public Register<decltype(p_sel2_t), p_sel2_t> {};
-
-  struct p_en : public Register<decltype(p_en_t), p_en_t> {};
 };
 
 template<volatile unsigned char& p_in_t,

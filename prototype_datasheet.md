@@ -192,8 +192,37 @@ Digital IO device, an 8-bit IO port:
 <div class="device_template" id="PortIO8bit">
 Device template name: <dfn class="cpp_name">PortIO8bit</dfn>
 
-IO port control.
+IO port control with <code>SEL</code> and <code>SEL2</code>.
+Two SEL bits are described in slau144k, but not in the older slau208q.
+SEL2 adds more peripheral functions to the port pins.
+If SEL2 bit is set to 0, SEL works as usual (as in slau208q):
+0b for I/O and 1b for the (primary) peripheral functions.
+If SEL2 is set to 1, then SEL picks other peripheral functions:
+0b for the secondary peripheral, 1b for the tertiary.
 
+From slau208q and slau144k:
+<q cite="slau208q">8.2.8 Configuring Unused Port Pins
+Unused I/O pins should be configured as I/O function, output direction, and left unconnected on the PC board, to
+prevent a floating input and reduce power consumption.
+The value of the PxOUT bit is irrelevant, since the pin is unconnected.
+Alternatively, the integrated pullup/pulldown resistor can be enabled by setting the PxREN bit of
+the unused pin to prevent the floating input.
+See the System Resets, Interrupts, and Operating Modes chapter for termination of unused pins.
+</q>
+The I/O function is selected by <code>sel</code> registers,
+as in 12.2.6 Function Select Registers (PxSEL).
+
+But slau144k has a note for MSP430G22x0 devices in 8.1 Digital I/O Introduction:
+<q>
+To avoid floating inputs on these GPIOs, these digital I/Os should be properly initialized by
+running a start-up code similar to the following sample:
+...
+The initialization code configures GPIOs P1.0, P1.1, P1.3, and P1.4 as inputs with pulldown resistor
+enabled (that is, P1REN.x = 1) and GPIOs P2.6 and P2.7 are terminated by selecting VLOCLK as
+ACLK – see the Basic Clock System chapter for details...
+</q>
+
+I set the output direction for unused ports on Launchpad.
 <details>
 <summary>
 Registers.
@@ -203,9 +232,45 @@ Registers.
 <li class="register" id="PortIO8bit.p_in"> Name: <dfn>p_in</dfn>. Width: <span class="width">8</span>. </li>
 <li class="register" id="PortIO8bit.p_out"> Name: <dfn>p_out</dfn>. Width: <span class="width">8</span>. </li>
 <li class="register" id="PortIO8bit.p_dir"> Name: <dfn>p_dir</dfn>. Width: <span class="width">8</span>. </li>
-<li class="register" id="PortIO8bit.p_sel"> Name: <dfn>p_sel</dfn>. Width: <span class="width">8</span>. </li>
-<li class="register" id="PortIO8bit.p_sel2"> Name: <dfn>p_sel2</dfn>. Width: <span class="width">8</span>. </li>
-<li class="register" id="PortIO8bit.p_en"> Name: <dfn>p_en</dfn>. Width: <span class="width">8</span>. </li>
+<li class="register" id="PortIO8bit.p_sel"> Name: <dfn>p_sel</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+  Port function selection: I/O or peripheral.
+</span>
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">IO_FUNCTION_or_PERIPHERAL_SECONDARY</data> </span>
+  <span class="value_option"><data value="1">PERIPHERAL_PRIMARY_or_TERTIARY</data> </span>
+</details>
+</li>
+
+<li class="register" id="PortIO8bit.p_sel2"> Name: <dfn>p_sel2</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+  Two SEL bits are described in slau144k, but not in the older slau208q.
+  SEL2 adds more peripheral functions to the port pins.
+  If SEL2 bit is set to 0, SEL works as usual (as in slau208q):
+  0b for I/O and 1b for the (primary) peripheral functions.
+  If SEL2 is set to 1, then SEL picks other peripheral functions:
+  0b for the secondary peripheral, 1b for the tertiary.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0">BASIC</data>
+  <span class="comment">Port pins function is I/O or Primary Peropheral.
+  </span>
+  </span>
+  <span class="value_option"><data value="1">PERIPHERAL_SECONDARY_or_TERTIARY</data> </span>
+</details>
+</li>
+
+<li class="register" id="PortIO8bit.p_en"> Name: <dfn>p_en</dfn>. Width: <span class="width">8</span>.
+<span class="comment">
+  Port x pullup or pulldown resistor enable. When respective port is configured as
+  input, setting this bit will enable the pullup or pulldown. <q cite="slau208q">See Table 12-1</q>
+  0b = Pullup or pulldown disabled
+  1b = Pullup or pulldown enabled
+</span>
+</li>
 </ul>
 </details>
 </div>
