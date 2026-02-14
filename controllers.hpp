@@ -47,7 +47,7 @@ namespace MSP430G2553 {
     //        volatile unsigned int& Control1_t>
     //struct ADC10 { ADC10() = delete; };
     using ADC10 = regmaps::ADC10<ADC10DTC0, ADC10DTC1, ADC10AE0,
-          ADC10CTL0, ADC10CTL1>;
+          ADC10CTL0, ADC10CTL1, ADC10MEM, ADC10SA>;
 
     using FlashMemoryModule = regmaps::FlashMemoryModule<FCTL1, FCTL2, FCTL3>;
 

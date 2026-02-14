@@ -193,7 +193,9 @@ template<volatile unsigned char& DataTransferControl0_t,
          volatile unsigned char& DataTransferControl1_t,
          volatile unsigned char& AnalogEnable0_t,
          volatile unsigned int& Control0_t,
-         volatile unsigned int& Control1_t>
+         volatile unsigned int& Control1_t,
+         volatile unsigned int& Memory_t,
+         volatile unsigned int& DataTransferStartAddress_t>
 struct ADC10 {
   ADC10() = delete;
 
@@ -305,6 +307,10 @@ struct ADC10 {
         CH_15{15};
     };
   };
+
+  struct Memory : public Register<decltype(Memory_t), Memory_t> {};
+
+  struct DataTransferStartAddress : public Register<decltype(DataTransferStartAddress_t), DataTransferStartAddress_t> {};
 };
 
 template<volatile unsigned char& DCOClockFrequencyControl_t,
