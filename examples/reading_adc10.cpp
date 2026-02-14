@@ -1,11 +1,6 @@
 /// Example of reading ADC10 on MSP430G2553.
-/// It is based on:
-/// https://coder-tronics.com/msp430-adc-tutorial/
-/// https://www.xanthium.in/msp430-launchpad-adc10-configuration-tutorial
-/// https://www.msp430launchpad.com/2010/09/simple-adc-example-on-launchpad.html
-/// https://e2e.ti.com/support/microcontrollers/msp-low-power-microcontrollers-group/msp430/f/msp-low-power-microcontroller-forum/1574072/msp430fr2111-how-do-i-configure-a-port-as-an-analog-input-for-the-adc
-/// which implies that you need to find "Pin functions" in the controller datasheet.
-/// Or just search for PSEL.
+/// Single channel and single conversion.
+/// Binary size: 184B .text and 214B total.
 
 #include "msp430chip/controllers.hpp"
 
@@ -34,8 +29,8 @@ void ConfigureAdc(void) {
         ctr1::input_channel::set(ctr1::input_channel::CH_3)
         | ctr1::clock_divider::set(ctr1::clock_divider::DIV_3)
         | ctr1::conversion_sequence::set(ctr1::conversion_sequence::SingleChannelSingleConversion)
-        //| ctr1::clock_source::set(ctr1::clock_source::ADC10OSC)
-        | ctr1::clock_source::set(ctr1::clock_source::ACLK)
+        | ctr1::clock_source::set(ctr1::clock_source::ADC10OSC)
+        //| ctr1::clock_source::set(ctr1::clock_source::ACLK)
     >();
     // the single-channel-single-conversion is default (bit value 0)
     // and so is the clock source
@@ -86,11 +81,11 @@ int main(void)
     ConfigureAdc();
     __enable_interrupt();  // Enable interrupts.
 
+    __delay_cycles(1'000);  // Wait for ADC Ref to settle
+    // It is not needed in the loop is it?
+
     unsigned count_cycle{0};
     while (1) {
-        __delay_cycles(1'000);  // Wait for ADC Ref to settle
-                                // It is not needed in the loop is it?
-
         using adc = device::ADC10;
         using ctr0 = adc::Control0;
 
@@ -100,9 +95,14 @@ int main(void)
             | ctr0::start_conversion::set(1)
         );
 
-        //_BIS_SR(LPM0_bits + GIE); // Enter LPM0 w/ interrupt
-        // it also enter LPM3 with ADC10 interrupts?
-        _BIS_SR(LPM3_bits + GIE);
+        // When the ADC10 runs on ACLK with clock divider /3,
+        // getting out of these sleep modes with interrupts takes noticeable time
+        // the green LED visibly blinks.
+        // Running on the default ADC10OSC with the /3 divider
+        // the LED blinks are not visible.
+        _BIS_SR(LPM0_bits + GIE); // Enter LPM0 w/ interrupt
+        // does it really enter LPM3 with ADC10 core running?
+        //_BIS_SR(LPM3_bits + GIE);
         unsigned int ADC_value = adc::Memory::read();
 
         device::Port1::p_out::write(

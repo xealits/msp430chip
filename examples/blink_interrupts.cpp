@@ -1,8 +1,6 @@
-/// Example of using msp430chip templates in
-/// interrupt-based LED blinking on MSP_EXP430G2 board
-/// with a 20-pin MSP430G2553.
-/// Compiled from the most basic busy-loop example from Ti
-/// plus their ULP recommendations for the interrupts.
+/// LED blinking with TimerA interrupts
+/// on MSP_EXP430G2 board with a 20-pin MSP430G2553.
+/// Binary size: 534B .text and 582B total.
 
 #include "msp430chip/controllers.hpp"
 
@@ -13,8 +11,18 @@ namespace FsmLED {
     constexpr decltype(CCR0) CLOCK_DELAY_TICKS_TIMES[2] = {50, 100};
     unsigned int is_short_tick = 0;
 
-    inline void led_setup(void) {
+    inline void setup(void) {
+        using ctr = device::TimerA_0::Control;
+        ctr::write<
+            ctr::input_clock::set(ctr::input_clock::INPUT_CLOCK_ACLK) |
+            ctr::clock_divider::set(ctr::clock_divider::DIVIDE_0) |
+            ctr::mode_control::set(ctr::mode_control::MODE_CONT)
+        >();
+
         device::TimerA_0::CaptureCompareBlock<0>::CapComReg::write(CLOCK_DELAY_TICKS_TIMES[1]);
+
+        using capcom = device::TimerA_0::CaptureCompareBlock<0>::CapComControl;
+        capcom::interrupt_enable::write(1);
     }
 
     inline void led_tick_event(void) {
@@ -64,20 +72,7 @@ int main(void)
   device::Port1::p_dir::set<board::LED_RED, board::LED_GREEN>();
   device::Port1::p_out::toggle<board::LED_GREEN>();
 
-  {
-    using ctr = device::TimerA_0::Control;
-    ctr::write<
-        ctr::input_clock::set(ctr::input_clock::INPUT_CLOCK_ACLK) |
-        ctr::clock_divider::set(ctr::clock_divider::DIVIDE_0) |
-        ctr::mode_control::set(ctr::mode_control::MODE_CONT)
-    >();
-  }
-
-  FsmLED::led_setup();
-  {
-    using capcom = device::TimerA_0::CaptureCompareBlock<0>::CapComControl;
-    capcom::interrupt_enable::write(1);
-  }
+  FsmLED::setup();
 
   //_BIS_SR(LPM0_bits + GIE); // Enter LPM0 w/ interrupt
   // let's enter LPM3
