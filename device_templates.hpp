@@ -215,11 +215,14 @@ struct ADC10 {
 
   struct Control0 : public Register<decltype(Control0_t), Control0_t> {
     struct start_conversion : public BitField<decltype(Control0_t), Control0_t, 0, 1> {};
+    /// Most of Control bits are modifiable only when the conversion is disabled, i.e. this bit = 0.
     struct enable_conversion : public BitField<decltype(Control0_t), Control0_t, 1, 1> {};
     struct interrupt_flag : public BitField<decltype(Control0_t), Control0_t, 2, 1> {};
     struct interrupt_enable : public BitField<decltype(Control0_t), Control0_t, 3, 1> {};
+    /// Enable the ADC core.
     struct on_enable : public BitField<decltype(Control0_t), Control0_t, 4, 1> {};
     struct ref_on : public BitField<decltype(Control0_t), Control0_t, 5, 1> {};
+    /// 0 = 1.5V, 1 = 2.5V
     struct ref_setting : public BitField<decltype(Control0_t), Control0_t, 6, 1> {};
     struct multiple_sample_conversion : public BitField<decltype(Control0_t), Control0_t, 7, 1> {};
     struct ref_burst_mode : public BitField<decltype(Control0_t), Control0_t, 8, 1> {};
@@ -234,14 +237,14 @@ struct ADC10 {
     };
     struct reference_select : public BitField<decltype(Control0_t), Control0_t, 13, 3> {
       constexpr static typename reference_select::OPT
-        REF_0{0} /** VR+ = AVCC and VR- = AVSS */,
-        REF_1{1} /** VR+ = VREF+ and VR- = AVSS */,
-        REF_2{2} /** VR+ = VEREF+ and VR- = AVSS */,
-        REF_3{3} /** VR+ = VEREF+ and VR- = AVSS */,
-        REF_4{4} /** VR+ = AVCC and VR- = VREF-/VEREF- */,
-        REF_5{5} /** VR+ = VREF+ and VR- = VREF-/VEREF- */,
-        REF_6{6} /** VR+ = VEREF+ and VR- = VREF-/VEREF- */,
-        REF_7{7} /** VR+ = VEREF+ and VR- = VREF-/VEREF- */;
+        AVCC_AVSS{0} /** VR+ = AVCC and VR- = AVSS */,
+        VREFp_AVSS{1} /** VR+ = VREF+ and VR- = AVSS */,
+        EVREFp_AVSS{2} /** VR+ = VeREF+ and VR- = AVSS (devices with VeREF+ only) */,
+        BufEREFp_AVSS{3} /** VR+ = Buffered VeREF+ and VR- = AVSS (devices with VeREF+ only) */,
+        AVCC_RatioVREF{4} /** VR+ = AVCC and VR- = VREF-/VeREF- */,
+        VREFp_RatioVREF{5} /** VR+ = VREF+ and VR- = VREF-/VeREF- */,
+        EVREFp_RatioVREF{6} /** VR+ = VeREF+ and VR- = VREF-/VeREF- */,
+        BufEVREFp_RatioVREF{7} /** VR+ = VeREF+ and VR- = VREF-/VeREF- */;
     };
   };
 
@@ -263,14 +266,14 @@ struct ADC10 {
     };
     struct clock_divider : public BitField<decltype(Control1_t), Control1_t, 5, 3> {
       constexpr static typename clock_divider::OPT
-        DIV_0{0},
-        DIV_1{1},
-        DIV_2{2},
-        DIV_3{3},
-        DIV_4{4},
-        DIV_5{5},
-        DIV_6{6},
-        DIV_7{7};
+        DIV_1{0},
+        DIV_2{1},
+        DIV_3{2},
+        DIV_4{3},
+        DIV_5{4},
+        DIV_6{5},
+        DIV_7{6},
+        DIV_8{7};
     };
     struct invert_sample_hold : public BitField<decltype(Control1_t), Control1_t, 8, 1> {};
     /// 0 = binary, 1 = 2's complement

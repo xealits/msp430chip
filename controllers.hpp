@@ -40,6 +40,14 @@ namespace MSP430G2553 {
     using Port3 = regmaps::PortIO8bit<P3IN, P3OUT, P3DIR,
                                     P3SEL, P3SEL2, P3REN>;
 
+    //template<volatile unsigned char& DataTransferControl0_t,
+    //        volatile unsigned char& DataTransferControl1_t,
+    //        volatile unsigned char& AnalogEnable0_t,
+    //        volatile unsigned int& Control0_t,
+    //        volatile unsigned int& Control1_t>
+    //struct ADC10 { ADC10() = delete; };
+    using ADC10 = regmaps::ADC10<>;
+
     using FlashMemoryModule = regmaps::FlashMemoryModule<FCTL1, FCTL2, FCTL3>;
 
     using USCI_A = regmaps::USCI_A<UCA0CTL0, UCA0CTL1,

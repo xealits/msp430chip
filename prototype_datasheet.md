@@ -365,6 +365,17 @@ A complicated one, ADC10:
 <div class="device_template" id="ADC10">
 Device template name: <dfn class="cpp_name">ADC10</dfn>
 
+<q cite="slau144k">
+The ADC10 core is configured by two control registers, ADC10CTL0 and ADC10CTL1. The core is enabled with
+the ADC10ON bit. With few exceptions the ADC10 control bits can only be modified when ENC = 0. ENC must
+be set to 1 before any conversion can take place.
+</q>
+
+<a href="https://www.xanthium.in/msp430-launchpad-adc10-configuration-tutorial">This short tutorial</a>
+says that the core must be enabled with the ON bit before any Control settings.
+But <a href="https://coder-tronics.com/msp430-adc-tutorial/">this example</a>
+does not follow that.
+
 <details>
 <summary>
 Registers.
@@ -417,13 +428,17 @@ Fields.
 
 <ul>
 <li class="field"> <dfn>start_conversion</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
-<li class="field"> <dfn>enable_conversion</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
+<li class="field"> <dfn>enable_conversion</dfn> <span class="width">1</span>'@<span class="offset">1</span>
+<span class="comment">Most of Control bits are modifiable only when the conversion is disabled, i.e. this bit = 0.</span>
+</li>
 <li class="field"> <dfn>interrupt_flag</dfn> <span class="width">1</span>'@<span class="offset">2</span> </li>
 <li class="field"> <dfn>interrupt_enable</dfn> <span class="width">1</span>'@<span class="offset">3</span> </li>
-<li class="field"> <dfn>on_enable</dfn> <span class="width">1</span>'@<span class="offset">4</span> </li>
+<li class="field"> <dfn>on_enable</dfn> <span class="width">1</span>'@<span class="offset">4</span>
+<span class="comment">Enable the ADC core.</span>
+</li>
 <li class="field"> <dfn>ref_on</dfn> <span class="width">1</span>'@<span class="offset">5</span> </li>
 <li class="field"> <dfn>ref_setting</dfn> <span class="width">1</span>'@<span class="offset">6</span>
-0 = 1.5V, 1 = 2.5V
+<span class="comment">0 = 1.5V, 1 = 2.5V</span>
 </li>
 <li class="field"> <dfn>multiple_sample_conversion</dfn> <span class="width">1</span>'@<span class="offset">7</span> </li>
 
@@ -446,14 +461,14 @@ Fields.
 <li class="field"> <dfn>reference_select</dfn> <span class="width">3</span>'@<span class="offset">13</span>
 <details>
   <summary>Value options.</summary>
-  <span class="value_option"><data value="0">REF_0</data> <span class="comment">VR+ = AVCC and VR- = AVSS</span></span>
-  <span class="value_option"><data value="1">REF_1</data> <span class="comment">VR+ = VREF+ and VR- = AVSS</span></span>
-  <span class="value_option"><data value="2">REF_2</data> <span class="comment">VR+ = VEREF+ and VR- = AVSS</span></span>
-  <span class="value_option"><data value="3">REF_3</data> <span class="comment">VR+ = VEREF+ and VR- = AVSS</span></span>
-  <span class="value_option"><data value="4">REF_4</data> <span class="comment">VR+ = AVCC and VR- = VREF-/VEREF-</span></span>
-  <span class="value_option"><data value="5">REF_5</data> <span class="comment">VR+ = VREF+ and VR- = VREF-/VEREF-</span></span>
-  <span class="value_option"><data value="6">REF_6</data> <span class="comment">VR+ = VEREF+ and VR- = VREF-/VEREF-</span></span>
-  <span class="value_option"><data value="7">REF_7</data> <span class="comment">VR+ = VEREF+ and VR- = VREF-/VEREF-</span></span>
+  <span class="value_option"><data value="0">AVCC_AVSS</data> <span class="comment">VR+ = AVCC and VR- = AVSS</span></span>
+  <span class="value_option"><data value="1">VREFp_AVSS</data> <span class="comment">VR+ = VREF+ and VR- = AVSS</span></span>
+  <span class="value_option"><data value="2">EVREFp_AVSS</data> <span class="comment">VR+ = VeREF+ and VR- = AVSS (devices with VeREF+ only)</span></span>
+  <span class="value_option"><data value="3">BufEREFp_AVSS</data> <span class="comment">VR+ = Buffered VeREF+ and VR- = AVSS (devices with VeREF+ only)</span></span>
+  <span class="value_option"><data value="4">AVCC_RatioVREF</data> <span class="comment">VR+ = AVCC and VR- = VREF-/VeREF-</span></span>
+  <span class="value_option"><data value="5">VREFp_RatioVREF</data> <span class="comment">VR+ = VREF+ and VR- = VREF-/VeREF-</span></span>
+  <span class="value_option"><data value="6">EVREFp_RatioVREF</data> <span class="comment">VR+ = VeREF+ and VR- = VREF-/VeREF-</span></span>
+  <span class="value_option"><data value="7">BufEVREFp_RatioVREF</data> <span class="comment">VR+ = VeREF+ and VR- = VREF-/VeREF-</span></span>
 </details>
 </li>
 
@@ -494,14 +509,14 @@ Fields.
 <li class="field"> <dfn>clock_divider</dfn> <span class="width">3</span>'@<span class="offset">5</span>
 <details>
   <summary>Value options.</summary>
-  <span class="value_option"><data value="0">DIV_0</data> </span>
-  <span class="value_option"><data value="1">DIV_1</data> </span>
-  <span class="value_option"><data value="2">DIV_2</data> </span>
-  <span class="value_option"><data value="3">DIV_3</data> </span>
-  <span class="value_option"><data value="4">DIV_4</data> </span>
-  <span class="value_option"><data value="5">DIV_5</data> </span>
-  <span class="value_option"><data value="6">DIV_6</data> </span>
-  <span class="value_option"><data value="7">DIV_7</data> </span>
+  <span class="value_option"><data value="0">DIV_1</data> </span>
+  <span class="value_option"><data value="1">DIV_2</data> </span>
+  <span class="value_option"><data value="2">DIV_3</data> </span>
+  <span class="value_option"><data value="3">DIV_4</data> </span>
+  <span class="value_option"><data value="4">DIV_5</data> </span>
+  <span class="value_option"><data value="5">DIV_6</data> </span>
+  <span class="value_option"><data value="6">DIV_7</data> </span>
+  <span class="value_option"><data value="7">DIV_8</data> </span>
 </details>
 </li>
 
