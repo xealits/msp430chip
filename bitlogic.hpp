@@ -93,10 +93,13 @@ struct BitField {
     return maskValue(value);
   }
 
-  template <typename T>
-  static constexpr inline BaseRegT set(T value) = delete;
+  //template <typename T>
+  //static constexpr inline BaseRegT set(T value) = delete;
 
-  static constexpr RegType read(void) { return (reg >> offset) & mask; }
+  static BaseRegT read(void) {
+    return (reg >> offset) & mask;
+  }
+
   static constexpr void write(BaseRegT field_val) {
     // auto new_value = reg | ((field_val & mask) << offset);
     // reg = new_value;
@@ -139,6 +142,10 @@ struct Register {
   template <unsigned... bits>
   constexpr static void set_or(void) {
     reg |= bitlogic::regMask<reg_t, bits...>();
+  }
+
+  constexpr static void set_or(reg_t new_bits) {
+    reg |= new_bits;
   }
 
   template <unsigned... bits>
