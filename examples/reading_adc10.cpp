@@ -34,7 +34,8 @@ void ConfigureAdc(void) {
         ctr1::input_channel::set(ctr1::input_channel::CH_3)
         | ctr1::clock_divider::set(ctr1::clock_divider::DIV_3)
         | ctr1::conversion_sequence::set(ctr1::conversion_sequence::SingleChannelSingleConversion)
-        | ctr1::clock_source::set(ctr1::clock_source::ADC10OSC)
+        //| ctr1::clock_source::set(ctr1::clock_source::ADC10OSC)
+        | ctr1::clock_source::set(ctr1::clock_source::ACLK)
     >();
     // the single-channel-single-conversion is default (bit value 0)
     // and so is the clock source
@@ -44,7 +45,8 @@ void ConfigureAdc(void) {
     // the datasheet SLAS735J says
     // that the ADC function on P1.3 is just set by ADC10AE.x
     // without caring for the digital port SEL setting
-    adc::AnalogEnable0::write(1 << 3);
+    //adc::AnalogEnable0::write(1 << 3);
+    adc::AnalogEnable0::write<1 << 3>();
 }
 
 // set the interrupt for ADC10 conversion completion
@@ -84,19 +86,31 @@ int main(void)
     ConfigureAdc();
     __enable_interrupt();  // Enable interrupts.
 
+    unsigned count_cycle{0};
     while (1) {
-        __delay_cycles(1000);  // Wait for ADC Ref to settle
+        __delay_cycles(1'000);  // Wait for ADC Ref to settle
+                                // It is not needed in the loop is it?
+
         using adc = device::ADC10;
         using ctr0 = adc::Control0;
 
-        ctr0::write<
+        // start conversion and go to sleep waiting for interrupt
+        ctr0::set_or(
             ctr0::enable_conversion::set(1)
             | ctr0::start_conversion::set(1)
-        >();
+        );
 
-        _BIS_SR(LPM0_bits + GIE); // Enter LPM0 w/ interrupt
-        // can it enter LPM3 with ADC10 interrupts?
-        //_BIS_SR(LPM3_bits + GIE);
-        unsigned int ADC_value = ADC10MEM;  // TODO: where is it in the ADC10 device?
+        //_BIS_SR(LPM0_bits + GIE); // Enter LPM0 w/ interrupt
+        // it also enter LPM3 with ADC10 interrupts?
+        _BIS_SR(LPM3_bits + GIE);
+        unsigned int ADC_value = adc::Memory::read();
+
+        device::Port1::p_out::write(
+            (ADC_value > 512 ? (1 << board::LED_RED) : 0x0)
+            |
+            (count_cycle & 0x1 == 0x1 ? (1 << board::LED_GREEN) : 0x0)
+        );
+
+        count_cycle++;
     }
 }

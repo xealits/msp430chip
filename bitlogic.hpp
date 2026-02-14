@@ -115,13 +115,14 @@ struct BitField {
 template<typename RegType, RegType& reg>
 struct Register {
   using reg_t = std::decay_t<RegType>;
+  RegType& reg_ref = reg;
 
   template <reg_t new_val>
   constexpr static inline void write(void) { reg = new_val; }
 
   constexpr static inline void write(reg_t new_val) { reg = new_val; }
 
-  constexpr static inline reg_t read(void) { return reg; }
+  static inline reg_t read(void) { return reg; }
 
   template<unsigned bit_n>
   constexpr static inline unsigned check_bit() {
