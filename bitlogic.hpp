@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <limits>
 #include <type_traits>
 
 template <typename Type>
@@ -121,6 +122,24 @@ struct Register {
   constexpr static inline void write(void) { reg = new_val; }
 
   constexpr static inline void write(reg_t new_val) { reg = new_val; }
+
+  // when a memory address is being written into a register
+  template<typename MemAddrType, MemAddrType* mem_addr>
+  constexpr static inline void write_addr(void) {
+    static_assert(mem_addr < std::numeric_limits<reg_t>, "does not fit");
+    reg = (reg_t) mem_addr;
+  }
+
+  // this does not get instantiated?
+  template<typename MemAddrType>
+  constexpr static inline void write_addr(MemAddrType* mem_addr) {
+    reg = (reg_t) mem_addr;
+  }
+
+  // this works
+  constexpr static inline void write_addr(unsigned int* mem_addr) {
+    reg = (reg_t) mem_addr;
+  }
 
   static inline reg_t read(void) { return reg; }
 

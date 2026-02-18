@@ -1,5 +1,10 @@
 /// Example of reading ADC10 on MSP430G2553.
 /// Single channel and multiple conversions.
+///
+/// This binary is much larger than first example: 614B .text and 660B overall
+/// Without the sum and average it is 570B and 616B overall.
+/// And without the extra setup instructions it gets to 556B.
+/// So, not clear why it is so much larger than the single conversion example.
 
 #include "msp430chip/controllers.hpp"
 
@@ -19,6 +24,8 @@ void ConfigureAdc(void) {
         | ctr0::on_enable::set(1)
         | ctr0::sample_hold_select::set(ctr0::sample_hold_select::SH_x64)
         | ctr0::reference_select::set(ctr0::reference_select::AVCC_AVSS)
+        // multiple conversions (do not forget this one - otherwise it hangs):
+        | ctr0::multiple_sample_conversion::set(1)
     >();
 
     using ctr1 = adc::Control1;
@@ -33,7 +40,15 @@ void ConfigureAdc(void) {
 
     // conversion address:
     adc::DataTransferControl1::write<n_adc_reeadings>();
-    adc::DataTransferStartAddress::write<&adc_readings[0]>();
+
+    // indeed, as in the coder-tronics example, you cannot set the address once
+    // in the setup code -- it has to be set right before StartConversion
+    // if no, the conversion hangs
+    //adc::DataTransferStartAddress::write(&adc_readings[0]);
+    //adc::DataTransferStartAddress::write_addr<decltype(adc_readings[0]), &adc_readings[0]>();
+    //adc::DataTransferStartAddress::write_addr<decltype(adc_readings[0])>(&adc_readings[0]);
+    // somehow, it does not instantiate those function templates?
+    //adc::DataTransferStartAddress::write_addr(&adc_readings[0]);
 
     adc::AnalogEnable0::write<1 << 3>();
 }
@@ -79,7 +94,10 @@ int main(void)
         using adc = device::ADC10;
         using ctr0 = adc::Control0;
 
+        //__delay_cycles(1'000'000);  // just a 1s delay to see things
+
         // start conversion and go to sleep waiting for interrupt
+        adc::DataTransferStartAddress::write_addr(&adc_readings[0]);
         ctr0::set_or(
             ctr0::enable_conversion::set(1)
             | ctr0::start_conversion::set(1)
