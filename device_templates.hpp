@@ -206,12 +206,11 @@ struct ADC10 {
     struct two_block_mode : public BitField<decltype(DataTransferControl0_t), DataTransferControl0_t, 3, 1> {};
   };
 
-  struct DataTransferControl1 : public Register<decltype(DataTransferControl1_t), DataTransferControl1_t> {
-    struct fetch : public BitField<decltype(DataTransferControl1_t), DataTransferControl1_t, 0, 1> {};
-    struct block_one : public BitField<decltype(DataTransferControl1_t), DataTransferControl1_t, 1, 1> {};
-    struct continuous_transfer : public BitField<decltype(DataTransferControl1_t), DataTransferControl1_t, 2, 1> {};
-    struct two_block_mode : public BitField<decltype(DataTransferControl1_t), DataTransferControl1_t, 3, 1> {};
-  };
+  /// ADC10DTC1
+  /// DTC transfers. These bits define the number of transfers in each block.
+  /// 0h = DTC is disabled
+  /// 1h–FFh = Number of transfers per block
+  struct DataTransferControl1 : public Register<decltype(DataTransferControl1_t), DataTransferControl1_t> {};
 
   struct AnalogEnable0 : public Register<decltype(AnalogEnable0_t), AnalogEnable0_t> {};
 

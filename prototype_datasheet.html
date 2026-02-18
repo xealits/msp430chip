@@ -395,18 +395,12 @@ Fields.
 
 <li class="register" id="ADC10.DataTransferControl1">
 Name: <dfn>DataTransferControl1</dfn>. Width: <span class="width">8</span>.
-<details>
-<summary>
-Fields.
-</summary>
-
-<ul>
-<li class="field"> <dfn>fetch</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
-<li class="field"> <dfn>block_one</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
-<li class="field"> <dfn>continuous_transfer</dfn> <span class="width">1</span>'@<span class="offset">2</span> </li>
-<li class="field"> <dfn>two_block_mode</dfn> <span class="width">1</span>'@<span class="offset">3</span> </li>
-</ul>
-</details>
+<span class="comment">
+<code>ADC10DTC1</code>
+DTC transfers. These bits define the number of transfers in each block.
+0h = DTC is disabled
+1h–FFh = Number of transfers per block
+</span>
 </li>
 
 
