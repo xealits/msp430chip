@@ -38,9 +38,10 @@ void ConfigureAdc(void) {
         //| ctr1::clock_source::set(ctr1::clock_source::ACLK)
     >();
 
-    // conversion address:
+    // number of reads
     adc::DataTransferControl1::write<n_adc_reeadings>();
 
+    // conversion address:
     // indeed, as in the coder-tronics example, you cannot set the address once
     // in the setup code -- it has to be set right before StartConversion
     // if no, the conversion hangs

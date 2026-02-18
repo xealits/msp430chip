@@ -34,19 +34,12 @@ void ConfigureAdc(void) {
         //| ctr1::clock_source::set(ctr1::clock_source::ACLK)
     >();
 
-    // conversion address:
+    // number of reads -- in this mode it will be number of channels
     adc::DataTransferControl1::write<n_adc_reeadings>();
 
-    // indeed, as in the coder-tronics example, you cannot set the address once
-    // in the setup code -- it has to be set right before StartConversion
-    // if no, the conversion hangs
-    //adc::DataTransferStartAddress::write(&adc_readings[0]);
-    //adc::DataTransferStartAddress::write_addr<decltype(adc_readings[0]), &adc_readings[0]>();
-    //adc::DataTransferStartAddress::write_addr<decltype(adc_readings[0])>(&adc_readings[0]);
-    // somehow, it does not instantiate those function templates?
-    //adc::DataTransferStartAddress::write_addr(&adc_readings[0]);
-
     // enable three channels
+    // The sequence begins with the Control1 input_channel (INCHx) 
+    // and continues down to A0.
     adc::AnalogEnable0::write<
         (1 << 3) | (1 << 2) | (1 << 1)
     >();
