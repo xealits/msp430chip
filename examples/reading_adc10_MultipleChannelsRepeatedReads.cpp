@@ -1,6 +1,13 @@
 /// Example of reading ADC10 on MSP430G2553.
-/// Multiple channels and multiple conversions.
-/// Not ready yet.
+/// Repeat sequence of channels.
+/// This example does not work.
+/// I do not see how to run this Reoeated Sequence of Channels mode.
+/// How it is different from just Sequence of Channels in the slau144k Guide?
+/// Just sequence "can be triggered by the ADC10SC bit" - StartConversion bit.
+/// And for the repeated sequence: "the next trigger signal re-starts the sequence".
+/// So, I guess, the repeated sequence trigger signal can come from different things?
+/// As it is now (with the SC and adc_readings[n_adc_sequences][n_channels]),
+/// adc_readings[0][0] is just random. DT does not pick up the right data.
 
 #include "msp430chip/controllers.hpp"
 
@@ -12,9 +19,9 @@ namespace device = board::controller;
 // and then repeats it N times.
 //
 
-constexpr unsigned n_channels = 4; // from channel 3 down to 0
+constexpr unsigned n_channels = 4; // from channel 3 down to 0, right?
 constexpr unsigned n_adc_sequences = 10;
-unsigned int adc_readings[n_channels][n_adc_sequences] = {0};
+unsigned int adc_readings[n_adc_sequences][n_channels] = {0};
 constexpr auto n_adc_reeadings = sizeof(adc_readings) / sizeof(adc_readings[0][0]);
 
 void ConfigureAdc(void) {
@@ -113,7 +120,7 @@ int main(void)
         unsigned adc_sums[n_channels] = {0};
         for (unsigned seq_i = 0; seq_i < n_adc_sequences; seq_i++) {
             for (unsigned chan_i = 0; chan_i < n_channels; chan_i++) {
-                adc_sums[chan_i] += adc_readings[chan_i][seq_i];
+                adc_sums[chan_i] += adc_readings[seq_i][chan_i];
             }
         }
 

@@ -15,3 +15,15 @@ info on e2e ti support forum, such as
 You need to find tables for "Pin functions" in the datasheet for your controller.
 (SLAS735J for MSP430G2553, SLASE78E for MSP430FR2111)
 Or just search for PSEL and you will probably find the tables.
+
+* I did not figure out how to run their "Repeat-Sequence-of-Channels" mode
+in the `reading_adc10_MultipleChannelsRepeatedReads.cpp` example.
+* The SLAU144K Guide (section 22.2.6.4 Repeat-Sequence-of-Channels Mode) says
+only "The sequence ends after conversion of channel A0, and the next trigger signal re-starts the sequence."
+So, it must mean that this "trigger signal" can be configured,
+it is not the Sequence Start (ASC10SC) bit?
+* How to configure that trigger? Can it come from TimerA?
+(Why not just write to the SC bit in the TimerA interrup routine?
+What's the advantage to have a different trigger?
+It shortens the time to start the conversion?)
+
