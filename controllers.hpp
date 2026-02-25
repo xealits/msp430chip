@@ -49,6 +49,8 @@ namespace MSP430G2553 {
     using ADC10 = regmaps::ADC10<ADC10DTC0, ADC10DTC1, ADC10AE0,
           ADC10CTL0, ADC10CTL1, ADC10MEM, ADC10SA>;
 
+    using ComparatorA = regmaps::ComparatorA<CACTL1, CACTL2, CAPD>;
+
     using FlashMemoryModule = regmaps::FlashMemoryModule<FCTL1, FCTL2, FCTL3>;
 
     using USCI_A = regmaps::USCI_A<UCA0CTL0, UCA0CTL1,
