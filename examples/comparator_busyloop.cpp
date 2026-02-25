@@ -1,4 +1,6 @@
 /// Wake up on a ComparatorA interrupt
+/// based on Ti example:
+/// https://dev.ti.com/tirex/explore/node?isTheia=false&node=A__AHzWBP8bZ4AHl41.8b1Ouw__msp430ware__IOGqZri__LATEST
 
 #include "msp430chip/controllers.hpp"
 

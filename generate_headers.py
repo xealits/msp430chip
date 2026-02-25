@@ -234,7 +234,7 @@ def parse_field(bs_elem):
     for opt in bs_elem.select(":scope > details > span.value_option"):
         opt_data = opt.select_one(":scope > data")
         opt_name = opt_data.text.strip()
-        value = int(opt_data["value"])
+        value = int(opt_data["value"], 0)
         opt_comment = opt.select_one(":scope > span.comment")
         if opt_comment is not None:
             opt_comment = opt_comment.text.strip()

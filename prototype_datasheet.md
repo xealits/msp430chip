@@ -750,16 +750,24 @@ Registers.
 
 <ul>
 <li class="register" id="ComparatorA.Control1">
-Name: <dfn>Control1</dfn>. Width: <span class="width">8</span>.
+Name: <dfn>Control1</dfn>.
+Width: <span class="width">8</span>.
+<span class="comment"> <code>CACTL1</code> main control register.</span>
 <details>
 <summary>
 Fields.
 </summary>
 
 <ul>
-<li class="field"> <dfn>InterruptFlag</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
-<li class="field"> <dfn>InterruptEnable</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
+<li class="field"> <dfn>InterruptFlag</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+<span class="comment"> <code>CAIFG</code></span>
+</li>
+<li class="field"> <dfn>InterruptEnable</dfn> <span class="width">1</span>'@<span class="offset">1</span>
+<span class="comment"> <code>CAIE</code></span>
+</li>
+
 <li class="field"> <dfn>EdgeSelect</dfn> <span class="width">1</span>'@<span class="offset">2</span>
+<span class="comment"> <code>CAIES</code>Comparator_A+ interrupt edge select.</span>
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">RISING</data> </span>
@@ -767,20 +775,44 @@ Fields.
 </details>
 </li>
 
-<li class="field"> <dfn>Enable</dfn> <span class="width">1</span>'@<span class="offset">3</span> </li>
+<li class="field"> <dfn>Enable</dfn> <span class="width">1</span>'@<span class="offset">3</span>
+<span class="comment"> <code>CAON</code>
+This bit turns on the comparator. When the
+comparator is off it consumes no current. The reference circuitry is
+enabled or disabled independently.
+</span>
+</li>
 
 <li class="field"> <dfn>InternalReference</dfn> <span class="width">2</span>'@<span class="offset">4</span>
+<span class="comment"> <code>CAREF</code>
+These bits select the reference voltage V_CAREF.
+</span>
 <details>
   <summary>Value options.</summary>
   <span class="value_option"><data value="0">OFF</data> </span>
   <span class="value_option"><data value="1">REF_0p25Vcc</data> </span>
   <span class="value_option"><data value="2">REF_0p5Vcc</data> </span>
-  <span class="value_option"><data value="3">REF_Vt</data> </span>
+  <span class="value_option"><data value="3">REF_Vt</data> <span class="comment">Diode reference is selected</span> </span>
 </details>
 </li>
 
-<li class="field"> <dfn>InternalReferenceEnable</dfn> <span class="width">1</span>'@<span class="offset">6</span> </li>
-<li class="field"> <dfn>ExchangeInputs</dfn> <span class="width">1</span>'@<span class="offset">7</span> </li>
+<li class="field"> <dfn>InternalReferenceEnable</dfn> <span class="width">1</span>'@<span class="offset">6</span>
+<span class="comment"> <code>CARSEL</code>
+This bit selects which terminal the V_CAREF is applied to.
+When CAEX = 0:
+0b = VCAREF is applied to the positive terminal
+01b = VCAREF is applied to the negative terminal.
+When CAEX = 1:
+0b = VCAREF is applied to the negative terminal
+1b = VCAREF is applied to the positive terminal.
+</span>
+</li>
+
+<li class="field"> <dfn>ExchangeInputs</dfn> <span class="width">1</span>'@<span class="offset">7</span>
+<span class="comment"> <code>CAEX</code>
+This bit exchanges the comparator inputs and inverts the comparator output.
+</span>
+</li>
 
 </ul>
 </details>
@@ -794,16 +826,64 @@ Fields.
 </summary>
 
 <ul>
-<li class="field"> <dfn>ComparatorAOutput</dfn> <span class="width">1</span>'@<span class="offset">0</span> </li>
-<li class="field"> <dfn>EnableOutputFilter</dfn> <span class="width">1</span>'@<span class="offset">1</span> </li>
-<li class="field"> <dfn>TerminalMultiplexer</dfn> <span class="width">5</span>'@<span class="offset">2</span> </li>
-<li class="field"> <dfn>ShortTerminals</dfn> <span class="width">1</span>'@<span class="offset">7</span> </li>
+<li class="field"> <dfn>ComparatorAOutput</dfn> <span class="width">1</span>'@<span class="offset">0</span>
+<span class="comment"> <code>CAOUT</code> </span>
+</li>
+<li class="field"> <dfn>EnableOutputFilter</dfn> <span class="width">1</span>'@<span class="offset">1</span>
+<span class="comment"> <code>CAF</code> </span>
+</li>
+
+<li class="field"> <dfn>TerminalMultiplexer</dfn> <span class="width">5</span>'@<span class="offset">2</span>
+<span class="comment"> <code>P2CAx</code>
+This one has complex logic.
+It defines how the positive and negative terminals are connected.
+The pair of the highest 4th bit and the lowest 0th ("side group") defines the connection
+of positive terminal when CAEX=0 or negative terminal when CAEX=1.
+The trio of the 1-2-3 bits ("middle group") defines the connection
+of the negative terminal when CAEX=0 or positive terminal when CAEX=1.
+</span>
+
+<details>
+  <summary>Value options.</summary>
+  <span class="value_option"><data value="0b00000">NO_CONNECTION</data> </span>
+
+  <span class="value_option"><data value="0b00010">MIDDLE_CA1</data> </span>
+  <span class="value_option"><data value="0b00100">MIDDLE_CA2</data> </span>
+  <span class="value_option"><data value="0b00110">MIDDLE_CA3</data> </span>
+  <span class="value_option"><data value="0b01000">MIDDLE_CA4</data> </span>
+  <span class="value_option"><data value="0b01010">MIDDLE_CA5</data> </span>
+  <span class="value_option"><data value="0b01100">MIDDLE_CA6</data> </span>
+  <span class="value_option"><data value="0b01110">MIDDLE_CA7</data> </span>
+
+  <span class="value_option"><data value="0b00001">SIDE_CA0</data> </span>
+  <span class="value_option"><data value="0b10000">SIDE_CA1</data> </span>
+  <span class="value_option"><data value="0b10001">SIDE_CA2</data> </span>
+</details>
+</li>
+
+<li class="field"> <dfn>ShortTerminals</dfn> <span class="width">1</span>'@<span class="offset">7</span>
+<span class="comment"> <code>CASHORT</code> </span>
+</li>
 </ul>
 </details>
 </li>
 
 <li class="register" id="ComparatorA.PortDisable">
 Name: <dfn>PortDisable</dfn>. Width: <span class="width">8</span>.
+<span class="comment"> <code>CAPD</code>
+These bits individually disable the input
+buffer for the pins of the port associated with Comparator_A+. For
+example, if CA0 is on pin P2.3, the CAPDx bits can be used to
+individually enable or disable each P2.x pin buffer. CAPD0 disables
+P2.0, CAPD1 disables P2.1, and so forth.
+
+However, the SLAS735J datasheet for MSP430G2553 confuses me:
+the "Pin Functions" tables show that CAPD bits have to be set to 1
+in order to connect CAx to the Port1.x pins.
+Ti MSP430Ware examples do not use CAPD?
+In the tests, I never set CAPD, and the comparator worked.
+</span>
+
 <details>
 <summary>
 Fields.

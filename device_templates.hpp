@@ -406,33 +406,88 @@ template<volatile unsigned char& Control1_t,
 struct ComparatorA {
   ComparatorA() = delete;
 
+  /// CACTL1 main control register.
   struct Control1 : public Register<decltype(Control1_t), Control1_t> {
+    /// CAIFG
     struct InterruptFlag : public BitField<decltype(Control1_t), Control1_t, 0, 1> {};
+    /// CAIE
     struct InterruptEnable : public BitField<decltype(Control1_t), Control1_t, 1, 1> {};
+    /// CAIESComparator_A+ interrupt edge select.
     struct EdgeSelect : public BitField<decltype(Control1_t), Control1_t, 2, 1> {
       constexpr static typename EdgeSelect::OPT
         RISING{0},
         FALLING{1};
     };
+    /// CAON
+    /// This bit turns on the comparator. When the
+    /// comparator is off it consumes no current. The reference circuitry is
+    /// enabled or disabled independently.
     struct Enable : public BitField<decltype(Control1_t), Control1_t, 3, 1> {};
+    /// CAREF
+    /// These bits select the reference voltage V_CAREF.
     struct InternalReference : public BitField<decltype(Control1_t), Control1_t, 4, 2> {
       constexpr static typename InternalReference::OPT
         OFF{0},
         REF_0p25Vcc{1},
         REF_0p5Vcc{2},
-        REF_Vt{3};
+        REF_Vt{3} /** Diode reference is selected */;
     };
+    /// CARSEL
+    /// This bit selects which terminal the V_CAREF is applied to.
+    /// When CAEX = 0:
+    /// 0b = VCAREF is applied to the positive terminal
+    /// 01b = VCAREF is applied to the negative terminal.
+    /// When CAEX = 1:
+    /// 0b = VCAREF is applied to the negative terminal
+    /// 1b = VCAREF is applied to the positive terminal.
     struct InternalReferenceEnable : public BitField<decltype(Control1_t), Control1_t, 6, 1> {};
+    /// CAEX
+    /// This bit exchanges the comparator inputs and inverts the comparator output.
     struct ExchangeInputs : public BitField<decltype(Control1_t), Control1_t, 7, 1> {};
   };
 
   struct Control2 : public Register<decltype(Control2_t), Control2_t> {
+    /// CAOUT
     struct ComparatorAOutput : public BitField<decltype(Control2_t), Control2_t, 0, 1> {};
+    /// CAF
     struct EnableOutputFilter : public BitField<decltype(Control2_t), Control2_t, 1, 1> {};
-    struct TerminalMultiplexer : public BitField<decltype(Control2_t), Control2_t, 2, 5> {};
+    /// P2CAx
+    /// This one has complex logic.
+    /// It defines how the positive and negative terminals are connected.
+    /// The pair of the highest 4th bit and the lowest 0th ("side group") defines the connection
+    /// of positive terminal when CAEX=0 or negative terminal when CAEX=1.
+    /// The trio of the 1-2-3 bits ("middle group") defines the connection
+    /// of the negative terminal when CAEX=0 or positive terminal when CAEX=1.
+    struct TerminalMultiplexer : public BitField<decltype(Control2_t), Control2_t, 2, 5> {
+      constexpr static typename TerminalMultiplexer::OPT
+        NO_CONNECTION{0},
+        SIDE_CA0{1},
+        MIDDLE_CA1{2},
+        MIDDLE_CA2{4},
+        MIDDLE_CA3{6},
+        MIDDLE_CA4{8},
+        MIDDLE_CA5{10},
+        MIDDLE_CA6{12},
+        MIDDLE_CA7{14},
+        SIDE_CA1{16},
+        SIDE_CA2{17};
+    };
+    /// CASHORT
     struct ShortTerminals : public BitField<decltype(Control2_t), Control2_t, 7, 1> {};
   };
 
+  /// CAPD
+  /// These bits individually disable the input
+  /// buffer for the pins of the port associated with Comparator_A+. For
+  /// example, if CA0 is on pin P2.3, the CAPDx bits can be used to
+  /// individually enable or disable each P2.x pin buffer. CAPD0 disables
+  /// P2.0, CAPD1 disables P2.1, and so forth.
+
+  /// However, the SLAS735J datasheet for MSP430G2553 confuses me:
+  /// the "Pin Functions" tables show that CAPD bits have to be set to 1
+  /// in order to connect CAx to the Port1.x pins.
+  /// Ti MSP430Ware examples do not use CAPD?
+  /// In the tests, I never set CAPD, and the comparator worked.
   struct PortDisable : public Register<decltype(PortDisable_t), PortDisable_t> {
     struct InputBuffersOfPortRegister : public BitField<decltype(PortDisable_t), PortDisable_t, 0, 8> {};
   };
