@@ -11,8 +11,12 @@
 namespace board = launchpad_boards::MSP_EXP430G2;
 namespace device = board::controller;
 
-unsigned char TXData;
+unsigned char TXData = 0x00;
 unsigned char TXByteCtr;
+
+// 0x48 is from the Ti example
+// 0x77 is Grove BMP280 sensor
+constexpr unsigned slave_address = 0x48;
 
 unsigned count_cycle{0};
 
@@ -47,7 +51,7 @@ int main(void)
   UCB0CTL1 = UCSSEL_2 + UCSWRST;            // Use SMCLK, keep SW reset
   UCB0BR0 = 12;                             // fSCL = SMCLK/12 = ~100kHz
   UCB0BR1 = 0;
-  UCB0I2CSA = 0x48;                         // Slave Address is 048h
+  UCB0I2CSA = slave_address;                         // Slave Address is 048h
   UCB0CTL1 &= ~UCSWRST;                     // Clear SW reset, resume operation
 
   IE2 |= UCB0TXIE;                          // Enable TX interrupt
@@ -132,8 +136,29 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
     blink_code(0b01, 2);
 
     // check NACK?
-    if (UCB0STAT & UCNACKIFG) {
+    unsigned char cur_stat = UCB0STAT;
+
+    if (UCB0STAT & (UCNACKIFG) )
+    //if (UCB0STAT & (UCNACKIFG | UCSCLLOW | UCBBUSY) )
+    //if (cur_stat & (UCBBUSY) ) // looks like bus is busy
+    // yeah, the bus busy bit is set after the start condition and cleared after stop condition
+    //if (cur_stat & (UCSCLLOW) )
+    // no, it is not held low
+    {
+
+      // which is totally wrong -- there is no device 0x48
       blink_code(0b0001, 4);
+      // also clear NACK:
+      UCB0STAT &= ~UCNACKIFG;
+
+      // It seems like NACK never gets triggered
+      while (1)
+      {
+        blink_code(cur_stat, 8);
+        // this code is never executed
+        // although, there is no device on the I2C bus
+        // so, something goes wrong rught here then?
+      }
     }
 
     else {
@@ -142,15 +167,15 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
 
     UCB0CTL1 |= UCTXSTP;                    // I2C stop condition
     IFG2 &= ~UCB0TXIFG;                     // Clear USCI_B0 TX int flag
-    // also clear NACK:
-    UCB0STAT &= ~UCNACKIFG;
-
     __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
+    // I do these steps, because there is no second interrupt
+    // that would trigger the other branch
   }
 
   else
   {
     // this branch is never triggered
+    // maybe that's why USCI is stuck?
     blink_code(0b010101, 6);
 
     UCB0CTL1 |= UCTXSTP;                    // I2C stop condition
