@@ -120,6 +120,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
 #endif
 {
   // blink to show that it handles the first interrupt
+  // the scope triggers at the interrupt - before this blinking pattern
   blink_code(0b011010, 6);
 
   // clear the LED pin
