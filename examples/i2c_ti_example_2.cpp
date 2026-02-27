@@ -1,3 +1,9 @@
+/// Trying to just send a byte to an I2C device, like just an address byte,
+/// and see it on the scope.
+/// The example is a copy from the Ti example:
+/// https://dev.ti.com/tirex/explore/node?isTheia=false&node=A__AOXtWQGRbQWMQsrS1Xx.3g__msp430ware__IOGqZri__LATEST
+
+
 #include <msp430.h>
 
 #include "msp430chip/controllers.hpp"
