@@ -46,7 +46,7 @@ struct OptEnum {
 
   static constexpr RegT mask = calcMask<RegT, BitFieldT::width>();
   const RegT value;
-  constexpr OptEnum(unsigned opt_val) : value{opt_val} {
+  constexpr OptEnum(RegT opt_val) : value{opt_val} {
     // assert(value <= mask && "Bitfield value must be <= mask");
     //  compiler (acpia430) segfaults with this assert
   }

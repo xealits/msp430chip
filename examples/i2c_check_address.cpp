@@ -7,9 +7,8 @@
 
 #include "msp430chip/controllers.hpp"
 
-// not yet
-//namespace board = launchpad_boards::MSP_EXP430G2;
-//namespace device = board::controller;
+namespace board = launchpad_boards::MSP_EXP430G2;
+namespace device = board::controller;
 
 constexpr uint8_t slave_address = 0x77; // default address of Grove BMP280
 
@@ -38,54 +37,60 @@ int main(void)
     }
 
     // I2C peripheral function
-    P1SEL |= BIT6 + BIT7;       // Assign I2C pins to USCI_B0
-    P1SEL2|= BIT6 + BIT7;       // Assign I2C pins to USCI_B0
+    P1SEL |= BIT6 + BIT7;       // Assign I2C pins to USCI_B
+    P1SEL2|= BIT6 + BIT7;       // Assign I2C pins to USCI_B
 
     { // configure USCI B for I2C
         
       {
-        using ctr1 = device::USCI_B0::Control1;
+        using ctr1 = device::USCI_B::Control1;
         ctr1::write<
           ctr1::SoftwareReset::set(1) // put in reset to configure
         >();
       }
 
       {
-        using ctr0 = device::USCI_B0::Control0;
+        using ctr0 = device::USCI_B::Control0;
         ctr0::write<
           ctr0::USCIMode::set(ctr0::USCIMode::I2C)
           | ctr0::SyncMode::set(ctr0::SyncMode::SYNCHRONOUS)
+          //| ctr0::SyncMode::set(ctr0::SyncMode::ASYNCHRONOUS)
           | ctr0::MasterMode::set(ctr0::MasterMode::MASTER)
         >();
       }
 
-      /** 
-      * Configure the baud rate registers for 100kHz when sourcing from SMCLK
-      * where SMCLK = 1MHz
-      */
+      //
+      //Configure the baud rate registers for 100kHz when sourcing from SMCLK
+      //where SMCLK = 1MHz
+      //
       //UCB0BR0 = 10; 
       //UCB0BR1 = 0;
       {
-        using bd0 = device::USCI_B0::BaudRate0::write(10);
-        using bd1 = device::USCI_B0::BaudRate1::write(0);
+        device::USCI_B::BaudRate0::write(10);
+        device::USCI_B::BaudRate1::write(0);
       }
 
       {
         // configure slave address
-        device::USCI_B0::I2CSlaveAddress::write(slave_address);
+        device::USCI_B::I2CSlaveAddress::write(slave_address);
       }
 
       {
         // set the clock source to SMCLK, which is 1MHz, and take it out from reset
-        using ctr1 = device::USCI_B0::Control1;
+        using ctr1 = device::USCI_B::Control1;
         ctr1::write<
-          ctr1::ClockSourceSelect::set(ctr1::ClockSourceSelect::SMCLK)
+          ctr1::ClockSource::set(ctr1::ClockSource::SMCLK)
           // keep SW reset - nope
           // let's follow the blog post here
           | ctr1::SoftwareReset::set(0)
         >();
       }
     }
+    /*
+    */
+
+    // enable TX interrupt
+    IE2 |= UCB0TXIE;
 
     unsigned count_cycle{0};
     while (1) {
@@ -101,6 +106,10 @@ int main(void)
         // and the transmitter mode
         UCB0CTL1 |= UCTR | UCTXSTT;
 
+        // maybe let's write a byte?
+        UCB0TXBUF = 0x10;
+        // it hangs here too
+
         // send the address byte
         // HOW?
         // the blog post just "waits for the start condition to be sent"
@@ -108,8 +117,14 @@ int main(void)
         /* Wait for the start condition to be sent and ready to transmit interrupt */
         while ((UCB0CTL1 & UCTXSTT) && ((IFG2 & UCB0TXIFG) == 0));
 
+        // maybe let's write a byte?
+        //UCB0TXBUF = 0x10;
+        // it hangs if here
+
+        __delay_cycles(100'000);  // just a delay
+
         // check ACK/NACK
-        bool got_ack = (device::USCI_B0::Status::read() & UCNACKIFG) > 0;
+        bool got_ack = (device::USCI_B::Status::read() & UCNACKIFG) > 0;
 
         // stop condition
         UCB0CTL1 |= UCTXSTP;     // Generate I2C stop condition
@@ -117,7 +132,9 @@ int main(void)
         device::Port1::p_out::write(
             (got_ack ? (1 << board::LED_RED) : 0x0)
             |
-            (count_cycle & 0x1 == 0x1 ? (1 << board::LED_GREEN) : 0x0)
+            // green led is on pin 6 - which is used for I2C now
+            //(count_cycle & 0x1 == 0x1 ? (1 << board::LED_GREEN) : 0x0)
+            (count_cycle & 0x1 == 0x1 ? (1 << board::LED_RED) : 0x0)
         );
 
         count_cycle++;

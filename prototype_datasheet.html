@@ -1750,8 +1750,9 @@ Fields.
 Not sure what this one means here.
 The <code>msp430g2553.h</code> header says it is Async=UART and Sync=SPI,
 i.e. the same as for USCI A. Which cannot be true.
-One should SPI and another one is I2C.
+One should be SPI and another one is I2C.
 I guess, <code>SyncMode=ASYNCHRONOUS</code> and <code>USCIMode=I2C</code> selects I2C?
+But the Ti MSP430Ware example selects synchronous mode for I2C.
 </span>
 
 <details>
@@ -1775,7 +1776,7 @@ I guess, <code>SyncMode=ASYNCHRONOUS</code> and <code>USCIMode=I2C</code> select
   <span class="value_option"><data value="2">SYNC_4pin_SPI_UCxSTE_active_LOW</data>
   <span class="comment">Slave enabled when <code>UCxSTE = 0</code>.</span>
   </span>
-  <span class="value_option"><data value="3">I2C_MODE</data> </span>
+  <span class="value_option"><data value="3">I2C</data> </span>
 </details>
 </li>
 
@@ -1788,8 +1789,8 @@ the <code>UCMST</code> bit is automatically cleared and the module acts as slave
 
 <details>
   <summary>Value options.</summary>
-  <span class="value_option"><data value="0">SLAVE_MODE</data> </span>
-  <span class="value_option"><data value="1">MASTER_MODE</data> </span>
+  <span class="value_option"><data value="0">SLAVE</data> </span>
+  <span class="value_option"><data value="1">MASTER</data> </span>
 </details>
 </li>
 
@@ -2003,6 +2004,7 @@ Name: <dfn>I2CInterruptEnable</dfn>. Width: <span class="width">8</span>.
 <li class="register" id="USCI_B.Status">
 Name: <dfn>Status</dfn>. Width: <span class="width">8</span>.
 <span class="comment">
+TODO: this one seems wrongly implemented - does not match User Guide.
 <code>UCBxSTAT</code>
 Can be modified only when <code>UCSWRST = 1</code>.
 Most bits are valid only for I2C.

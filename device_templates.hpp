@@ -963,8 +963,9 @@ struct USCI_B {
     /// Not sure what this one means here.
     /// The msp430g2553.h header says it is Async=UART and Sync=SPI,
     /// i.e. the same as for USCI A. Which cannot be true.
-    /// One should SPI and another one is I2C.
+    /// One should be SPI and another one is I2C.
     /// I guess, SyncMode=ASYNCHRONOUS and USCIMode=I2C selects I2C?
+    /// But the Ti MSP430Ware example selects synchronous mode for I2C.
     struct SyncMode : public BitField<decltype(Control0_t), Control0_t, 0, 1> {
       constexpr static typename SyncMode::OPT
         ASYNCHRONOUS{0},
@@ -976,15 +977,15 @@ struct USCI_B {
         SYNC_3pin_SPI{0},
         SYNC_4pin_SPI_UCxSTE_active_HIGH{1} /** Slave enabled when UCxSTE = 1. */,
         SYNC_4pin_SPI_UCxSTE_active_LOW{2} /** Slave enabled when UCxSTE = 0. */,
-        I2C_MODE{3};
+        I2C{3};
     };
     /// UCMST
     /// In I2C mode: when a master loses arbitration in a multi-master environment (UCMM = 1),
     /// the UCMST bit is automatically cleared and the module acts as slave.
     struct MasterMode : public BitField<decltype(Control0_t), Control0_t, 3, 1> {
       constexpr static typename MasterMode::OPT
-        SLAVE_MODE{0},
-        MASTER_MODE{1};
+        SLAVE{0},
+        MASTER{1};
     };
     /// UC7BIT
     /// In SPI mode: selects 7-bit or 8-bit character length.
@@ -1106,6 +1107,7 @@ struct USCI_B {
     struct Reserved : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 6, 2> {};
   };
 
+  /// TODO: this one seems wrongly implemented - does not match User Guide.
   /// UCBxSTAT
   /// Can be modified only when UCSWRST = 1.
   /// Most bits are valid only for I2C.
