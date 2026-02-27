@@ -1,3 +1,11 @@
+// Trying to repeat the following Ti example,
+// but MSP430G2553 gets stuck on sending.
+// It does process the TX interrupt once, i.e. writes to TX BUF.
+// But it never receives the second interrupt, never sends the STOP condition,
+// and never exits the LPM0 sleep.
+// If I make it exit the sleep at the end of the first interrupt
+// and add the stop condition, USC B never clears the stop condition flag.
+
 //******************************************************************************
 //  MSP430G2xx3 Demo - USCI_B0 I2C Master TX single bytes to MSP430 Slave
 //
@@ -35,17 +43,18 @@ constexpr unsigned slave_address = 0x48;
 
 void blink_code(unsigned code, unsigned bit_len) {
   unsigned min_len = (bit_len < sizeof(code) * 8 ? bit_len : sizeof(code) * 8);
-  for (unsigned bit_i = 0; bit_i < min_len; bit_i++) {
-    __delay_cycles(500'000);
-    P1OUT &= ~BIT0; // P1.0 = 0
 
-    if (code & (1 << bit_i) > 0) {
+  for (unsigned bit_i = 0; bit_i < min_len; bit_i++) {
+    P1OUT &= ~BIT0; // P1.0 = 0
+    __delay_cycles(200'000);
+
+    P1OUT |= BIT0; // P1.0 = 1
+    if ((code & (1 << (min_len - 1 - bit_i))) > 0) {
       __delay_cycles(1'000'000);
     }
     else {
       __delay_cycles(100'000);
     }
-    P1OUT |= BIT0; // P1.0 = 1
   }
 }
 
@@ -69,6 +78,8 @@ int main(void)
 
   TXData = 0x00;                            // Holds TX data
 
+  blink_code(0b1111, 4);
+
   while (1)
   {
     TXByteCtr = 1;                          // Load TX byte counter
@@ -80,7 +91,7 @@ int main(void)
       while (1) blink_code(0x1, 2);
     }
 
-    blink_code(0b110110, 6);
+    blink_code(0b100001111, 8);
 
     UCB0CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
     __bis_SR_register(CPUOFF + GIE);        // Enter LPM0 w/ interrupts
@@ -108,6 +119,14 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
 #error Compiler not supported!
 #endif
 {
+  // blink to show that it handles the first interrupt
+  blink_code(0b011010, 6);
+
+  // clear the LED pin
+  // in case it does not wake up from the sleep,
+  // it is the only place where LED is cleared
+  P1OUT &= ~BIT0; // P1.0 = 0
+
   if (TXByteCtr)                            // Check TX byte counter
   {
     UCB0TXBUF = TXData;                     // Load TX buffer
@@ -122,6 +141,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
 
   // this branch is never triggered - there is never a second interrupt
   // and the msp430g2553 never leaves the LPM0 sleep state
+  // red LED remains ON
   else
   {
     while (1) blink_code(0x01, 2);
