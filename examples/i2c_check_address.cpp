@@ -10,7 +10,31 @@
 namespace board = launchpad_boards::MSP_EXP430G2;
 namespace device = board::controller;
 
-constexpr uint8_t slave_address = 0x77; // default address of Grove BMP280
+// 0x77 default address of Grove BMP280
+// 0x48 some sensor from Ti example
+constexpr uint8_t slave_address = 0x48;
+
+void blink_code(unsigned code, unsigned bit_len) {
+  unsigned min_len = (bit_len < sizeof(code) * 8 ? bit_len : sizeof(code) * 8);
+
+  for (unsigned bit_i = 0; bit_i < min_len; bit_i++) {
+    P1OUT &= ~BIT0; // P1.0 = 0
+    __delay_cycles(200'000);
+
+    P1OUT |= BIT0; // P1.0 = 1
+    if ((code & (1 << (min_len - 1 - bit_i))) > 0) {
+      __delay_cycles(1'000'000);
+    }
+    else {
+      __delay_cycles(100'000);
+    }
+  }
+}
+
+void blink_sos(void) {
+  blink_code(0b000, 3);
+  blink_code(0b111, 3);
+}
 
 int main(void)
 {
@@ -20,10 +44,25 @@ int main(void)
     BCSCTL1 = CALBC1_1MHZ;  // Set range   DCOCTL = CALDCO_1MHZ;
     BCSCTL2 &= ~(DIVS_3);   // SMCLK = DCO = 1MHz
 
+  // blink red led on Launchpad
+  P1OUT &= ~BIT0;                           // P1.0 = 0
+  P1DIR |= BIT0;                            // P1.0 output
+
+  P1SEL |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
+  P1SEL2|= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
+
+
+    /*
     // initialize all ports to IO output - unused too
-    device::Port1::p_sel::write<0x00>(); // all I/O function
-    device::Port1::p_sel2::write<0x00>(); // all no advanced peripheral functions
+    // pins 6 and 7 are set to USCI_B
+    // the rest are I/O with direction output
+    device::Port1::p_sel::write<(1 << 6) | (1 << 7)>();
+    device::Port1::p_sel2::write<(1 << 6) | (1 << 7)>();
     device::Port1::p_dir::write<0xFF>(); // all output
+
+    //// I2C peripheral function
+    //P1SEL |= BIT6 + BIT7;       // Assign I2C pins to USCI_B
+    //P1SEL2|= BIT6 + BIT7;       // Assign I2C pins to USCI_B
 
     { // unused ports
         // set not connected pins to primary peripheral mode
@@ -35,10 +74,6 @@ int main(void)
         device::Port3::p_sel::write<0xFF>();
         device::Port3::p_sel2::write<0x00>();
     }
-
-    // I2C peripheral function
-    P1SEL |= BIT6 + BIT7;       // Assign I2C pins to USCI_B
-    P1SEL2|= BIT6 + BIT7;       // Assign I2C pins to USCI_B
 
     { // configure USCI B for I2C
         
@@ -54,7 +89,6 @@ int main(void)
         ctr0::write<
           ctr0::USCIMode::set(ctr0::USCIMode::I2C)
           | ctr0::SyncMode::set(ctr0::SyncMode::SYNCHRONOUS)
-          //| ctr0::SyncMode::set(ctr0::SyncMode::ASYNCHRONOUS)
           | ctr0::MasterMode::set(ctr0::MasterMode::MASTER)
         >();
       }
@@ -86,11 +120,24 @@ int main(void)
         >();
       }
     }
-    /*
     */
+
+  UCB0CTL1 |= UCSWRST;                      // Enable SW reset
+  UCB0CTL0 = UCMST + UCMODE_3 + UCSYNC;     // I2C Master, synchronous mode
+  UCB0CTL1 = UCSSEL_2 + UCSWRST;            // Use SMCLK, keep SW reset
+  UCB0BR0 = 12;                             // fSCL = SMCLK/12 = ~100kHz
+  UCB0BR1 = 0;
+  UCB0I2CSA = slave_address;                // Slave Address is 048h
+  UCB0CTL1 &= ~UCSWRST;                     // Clear SW reset, resume operation
 
     // enable TX interrupt
     IE2 |= UCB0TXIE;
+
+    // enable the NACK interrupt
+    UCB0I2CIE |= UCNACKIE;
+    //UCB0I2CIE |= 0b1000;
+
+    blink_code(0b10101100, 8);
 
     unsigned count_cycle{0};
     while (1) {
@@ -106,37 +153,311 @@ int main(void)
         // and the transmitter mode
         UCB0CTL1 |= UCTR | UCTXSTT;
 
-        // maybe let's write a byte?
-        UCB0TXBUF = 0x10;
-        // it hangs here too
+    __bis_SR_register(CPUOFF + GIE);        // Enter LPM0 w/ interrupts
 
-        // send the address byte
-        // HOW?
-        // the blog post just "waits for the start condition to be sent"
-        // it must mean that the address byte is included in the start condition
-        /* Wait for the start condition to be sent and ready to transmit interrupt */
-        while ((UCB0CTL1 & UCTXSTT) && ((IFG2 & UCB0TXIFG) == 0));
+  // do we ever get out from the sleep?
+  // looks like no?
+  // yes, it does get out - it is the problem of reset vs power cycle with the sleep mode
+  //while (1) blink_sos();
 
         // maybe let's write a byte?
         //UCB0TXBUF = 0x10;
-        // it hangs if here
+        // it hangs here too
 
-        __delay_cycles(100'000);  // just a delay
+        //// send the address byte
+        //// HOW?
+        //// the blog post just "waits for the start condition to be sent"
+        //// it must mean that the address byte is included in the start condition
+        ///* Wait for the start condition to be sent and ready to transmit interrupt */
+        //while ((UCB0CTL1 & UCTXSTT) && ((IFG2 & UCB0TXIFG) == 0));
+
+        //// maybe let's write a byte?
+        //UCB0TXBUF = 0x10;
+
+        //__delay_cycles(100'000);  // just a delay
+
+        //// stop condition
+        //UCB0CTL1 |= UCTXSTP;     // Generate I2C stop condition
+
+    while (1) blink_code(0b1, 1);
 
         // check ACK/NACK
-        bool got_ack = (device::USCI_B::Status::read() & UCNACKIFG) > 0;
+        bool got_nack = (device::USCI_B::Status::read() & UCNACKIFG) > 0;
+        bool got_ifg = (IFG2 & UCB0TXIFG) > 0;
 
-        // stop condition
-        UCB0CTL1 |= UCTXSTP;     // Generate I2C stop condition
+    while (UCB0CTL1 & UCTXSTP)              // Ensure stop condition got sent
+    {
+      blink_code(0b1, 1);
+      // it seems there is always at least one of these
+    }
 
-        device::Port1::p_out::write(
-            (got_ack ? (1 << board::LED_RED) : 0x0)
-            |
-            // green led is on pin 6 - which is used for I2C now
-            //(count_cycle & 0x1 == 0x1 ? (1 << board::LED_GREEN) : 0x0)
-            (count_cycle & 0x1 == 0x1 ? (1 << board::LED_RED) : 0x0)
-        );
+        //device::Port1::p_out::write(
+        //    ((got_nack || got_ifg) ? (1 << board::LED_RED) : 0x0)
+        //    |
+        //    // green led is on pin 6 - which is used for I2C now
+        //    //(count_cycle & 0x1 == 0x1 ? (1 << board::LED_GREEN) : 0x0)
+        //    (count_cycle & 0x1 == 0x1 ? (1 << board::LED_RED) : 0x0)
+        //);
+
+        if (got_nack) {
+          blink_code(0b10011, 5);
+        }
+
+        else {
+          blink_code(0b11011, 5);
+        }
 
         count_cycle++;
     }
 }
+
+bool first_tx_interrupt = true;
+
+// the receive interrupt vector handles the change flags, such as NACK
+#pragma vector = USCIAB0RX_VECTOR
+__interrupt void USCIAB0RX_ISR(void)
+{
+
+  if (!first_tx_interrupt)
+  {
+    bool start_condition_is_cleared = (UCB0CTL1 & UCTXSTT) == 0;
+    bool nack_flag_is_on = (UCB0STAT & UCNACKIFG) > 0;
+    bool tx_buf_ready = (IFG2 & UCB0TXIFG) > 0;
+
+    // now, in the RX interrupt vector
+    // STT gets cleared for the bad address here
+    // for the good address, this ISR does not run
+    // -- the ISR must be triggered by the NACK for the bad address
+    //if (start_condition_is_cleared) while (1) blink_code(0b010, 3);
+
+    // the bad address does not hit this:
+    if (tx_buf_ready) while (1) blink_code(0b01, 3);
+
+    // the bad address does hit this loop:
+    //if (nack_flag_is_on) while (1) blink_code(0b001, 3);
+
+    // so, the conditions must be as in the diagram:
+    bool nack_full_condition = start_condition_is_cleared && nack_flag_is_on && !tx_buf_ready;
+    if (nack_full_condition) while (1) blink_code(0b011, 3);
+
+    // interesting that with the wrong address
+    // I do not hit this loop
+    // i.e. there is no interrupt after writing to TXBUF?
+  }
+
+  else {
+    while (1) blink_code(0b111, 3);
+  }
+
+}
+
+//------------------------------------------------------------------------------
+// The USCIAB0TX_ISR is structured such that it can be used to transmit any
+// number of bytes by pre-loading TXByteCtr with the byte count.
+//------------------------------------------------------------------------------
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector = USCIAB0TX_VECTOR
+__interrupt void USCIAB0TX_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
+#else
+#error Compiler not supported!
+#endif
+{
+  // blink to show that it handles the first interrupt
+  // the scope triggers at the interrupt - before this blinking pattern
+  //blink_code(0b011010, 6);
+
+  // clear the LED pin
+  // in case it does not wake up from the sleep,
+  // it is the only place where LED is cleared
+  //P1OUT &= ~BIT0; // P1.0 = 0
+
+  // do we ever hit interrupt? - yes, whether the address is right or wrong
+  //while (1) blink_sos();
+
+  //// it never hits this when the address is wrong
+  //// when should I check for the NACK????
+  //if (UCB0STAT & (UCNACKIFG) ) {
+  //  while (1) blink_sos();
+  //}
+
+  // User Gauid slau144k says
+  // "as soon as slave acknowledges the address the UCTXSTT bit is cleared"
+  //bool start_condition_cleared = (UCB0CTL1 & UCTXSTT) == 0;
+  // let's just wait for the start condition to clear
+  // now the correct address never clears it???
+  // and the wrong address does not clear it either
+  // so the User Guide is wrong here?
+  // UCTXSTT just stays ON
+  // -- it stays on for the good address (no matter NACK interrupt)
+  // it is off for the bad address, when the NACK interrupt is enabled or no!!
+  // then it does hit the nack bit condition -- the sos blinking
+
+  //while ((UCB0CTL1 & UCTXSTT) > 0) {
+  //  blink_code(0b01, 2);
+  //}
+
+  // let's check the interrupt flag
+  // this flag says: ready to send some data
+  // according to the user guide
+  // it is set after the start condition is generated
+  // -- here, yes, this is the flag that's on now
+  // both for a wrong address and the right one
+  //while ((IFG2 & UCB0TXIFG) > 0) {
+  //  blink_code(0b1, 1);
+  //}
+
+  //if (!start_condition_cleared) {
+  //  //while (1) blink_sos();
+  //  // it does hit this when the address is wrong
+  //  // and also when the address is right...
+  //  bool nack_flag_is_on = (UCB0STAT & UCNACKIFG) > 0;
+  //}
+
+  // I do see the correct signals on the scope:
+  // clock and data line with the 9th bit NACK
+  // after that, for the wrong address the MSP430 just holds the clock like down
+  // -- naturally, it never gets to the stop condition etc.
+  // So, why on earth it gives me nothing here?
+  // Why no NACK flag? - try to enable the NACK interrupt
+  // no, still no nack flag....
+  //
+  // and somehow it works now
+  // the only difference -- I "reset" it by power-cycling instead of reset command
+  // and no - it stopped working
+  //
+  // if I add that loop on the STT - the following starts working for the wrong address
+  // does the order of reading registers matter?
+
+  /*
+  bool start_condition_is_cleared = (UCB0CTL1 & UCTXSTT) == 0;
+  //// so, with NACK IE on or off, for both addresses
+  //// it stops here - STT is never cleared here
+  //if (!start_condition_is_cleared) {
+  //  while (1) blink_code(0b01, 2);
+  //}
+
+  bool tx_buf_ready = (IFG2 & UCB0TXIFG) > 0;
+  if (!tx_buf_ready) {
+    while (1) blink_code(0b0, 1);
+  }
+
+  bool nack_flag_is_on = (UCB0STAT & UCNACKIFG) > 0;
+
+  //now check NACK:
+  //if (start_condition_is_cleared && nack_flag_is_on)
+  // this one is never set on the start condition now: for both addresses and NACKIE = on
+  // although I do see the ACK and NACK on the scope
+  if (nack_flag_is_on)
+  {
+    while (1) blink_sos();
+  }
+
+  //else {
+  //  // it just always goes to this branch
+  //  // for the correct and wrong addess
+  //  while (1) blink_code(0b0, 1);
+  //}
+  */
+
+  if (!first_tx_interrupt)
+  {
+    bool start_condition_is_cleared = (UCB0CTL1 & UCTXSTT) == 0;
+    bool nack_flag_is_on = (UCB0STAT & UCNACKIFG) > 0;
+    bool tx_buf_ready = (IFG2 & UCB0TXIFG) > 0;
+
+    // the good address hits this line -- i.e. there is a second interrupt
+    // but the bad address does not -- the NACK interrupt is not generated
+    // although I do have it enabled
+    // UCB0I2CIE |= UCNACKIE;
+    if (start_condition_is_cleared) while (1) blink_code(0b000, 3);
+
+    //if (nack_flag_is_on) while (1) blink_code(0b001, 3);
+    //if (tx_buf_ready) while (1) blink_code(0b01, 3);
+
+    // interesting that with the wrong address
+    // I do not hit this loop
+    // i.e. there is no interrupt after writing to TXBUF?
+  }
+
+  //while (1) blink_code(0b001, 3);
+
+  if (first_tx_interrupt)                     // Check TX byte counter
+  {
+    first_tx_interrupt = false;
+    UCB0TXBUF = 0b10101100;                   // Load TX buffer
+    //TXByteCtr--;                            // Decrement TX byte counter
+
+    // blink after writing to the buffer
+    //blink_code(0b011010, 6);
+
+  // now it does hit this loop even for the good address
+  // -- i.e. the second interrupt either does not happen or does not pull it from this ISR?
+  // and STT is still not cleared here?
+  //bool start_condition_is_cleared = (UCB0CTL1 & UCTXSTT) == 0;
+  //if (!start_condition_is_cleared) {
+  //  while (1) blink_code(0b00, 2);
+  //}
+  // so, let's let it go
+  // the idea is that the second interrupt always happens -- for the bad address too
+
+    // check whether there is a NACK at this point
+    // if the address is wrong, I still do not get this triggered
+    // so, when should I check the NACK bit?
+    if (UCB0STAT & (UCNACKIFG) )
+    {
+      while (1) blink_code(0b0, 1);
+      //while (1) blink_sos();
+    }
+
+    //while (1) blink_code(0b1100, 4); // without this, it blinks 0001 for some reason?
+    // I commented it out and it still blinks 1100
+    // then rebuilt-reuploaded -- it blinks 0001
+
+    // it seems I do not get here, because the second trigger gets launched
+    //while (1) blink_code(0b1111, 4);
+    //while (1) blink_code(0b1, 1);
+    // now finally it blinks steady 1
+    // something is messed up, either in the compiler or in the flashing
+    // the flash did not refresh this line of code or whatever?
+    //while (1) blink_code(0b1111, 4); // and now it blinks 0001 again
+    //while (1) blink_code(0b1110, 4); // and now it blinks steady 0 -- because it was 0x !!! not b
+  }
+
+  // this branch is never triggered - there is never a second interrupt
+  // and the msp430g2553 never leaves the LPM0 sleep state
+  // red LED remains ON
+  else
+  {
+    //while (1) blink_code(0b01, 2);
+
+  // do we ever hit the second interrupt?
+  // looks like no? - it is an issue of the reset VS power-cycle
+  // reset does not get it out of the sleep state or whatever
+  // bottom line: it does get here, I just need to power cycle to see the new code work correctly
+  //while (1) {
+  //  blink_sos();
+  //  blink_code(0b00, 2);
+  //}
+
+    first_tx_interrupt = true;
+
+    UCB0CTL1 |= UCTXSTP;                    // I2C stop condition
+    IFG2 &= ~UCB0TXIFG;                     // Clear USCI_B0 TX int flag
+
+    // done with the I2C transaction - exit
+    // but I do not see this one - how???
+    //blink_code(0b010101, 6);
+
+    // but I do see this one:
+  //while (1) {
+  //  blink_sos();
+  //  blink_code(0b001, 3);
+  //}
+
+    __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
+  }
+}
+
+

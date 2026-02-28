@@ -39,7 +39,7 @@ unsigned char TXByteCtr;
 
 // 0x48 - Ti example
 // 0x77 - my Grive BMP280 board
-constexpr unsigned slave_address = 0x48;
+constexpr unsigned slave_address = 0x77;
 
 void blink_code(unsigned code, unsigned bit_len) {
   unsigned min_len = (bit_len < sizeof(code) * 8 ? bit_len : sizeof(code) * 8);
@@ -67,6 +67,7 @@ int main(void)
 
   P1SEL |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
   P1SEL2|= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
+
   UCB0CTL1 |= UCSWRST;                      // Enable SW reset
   UCB0CTL0 = UCMST + UCMODE_3 + UCSYNC;     // I2C Master, synchronous mode
   UCB0CTL1 = UCSSEL_2 + UCSWRST;            // Use SMCLK, keep SW reset
@@ -74,6 +75,7 @@ int main(void)
   UCB0BR1 = 0;
   UCB0I2CSA = slave_address;                // Slave Address is 048h
   UCB0CTL1 &= ~UCSWRST;                     // Clear SW reset, resume operation
+
   IE2 |= UCB0TXIE;                          // Enable TX interrupt
 
   TXData = 0x00;                            // Holds TX data
@@ -121,7 +123,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
 {
   // blink to show that it handles the first interrupt
   // the scope triggers at the interrupt - before this blinking pattern
-  blink_code(0b011010, 6);
+  //blink_code(0b011010, 6);
 
   // clear the LED pin
   // in case it does not wake up from the sleep,
@@ -133,11 +135,14 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
     UCB0TXBUF = TXData;                     // Load TX buffer
     TXByteCtr--;                            // Decrement TX byte counter
 
-    // check whether there is a NACK at this point
-    if (UCB0STAT & (UCNACKIFG) )
-    {
-      while (1) blink_code(0x0, 1);
-    }
+    // blink after writing to the buffer
+    //blink_code(0b011010, 6);
+
+    //// check whether there is a NACK at this point
+    //if (UCB0STAT & (UCNACKIFG) )
+    //{
+    //  while (1) blink_code(0x0, 1);
+    //}
   }
 
   // this branch is never triggered - there is never a second interrupt
@@ -145,7 +150,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
   // red LED remains ON
   else
   {
-    while (1) blink_code(0x01, 2);
+    //while (1) blink_code(0x01, 2);
 
     UCB0CTL1 |= UCTXSTP;                    // I2C stop condition
     IFG2 &= ~UCB0TXIFG;                     // Clear USCI_B0 TX int flag
