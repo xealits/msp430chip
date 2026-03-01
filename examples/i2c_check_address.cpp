@@ -12,7 +12,14 @@ namespace device = board::controller;
 
 // 0x77 default address of Grove BMP280
 // 0x48 some sensor from Ti example
-constexpr uint8_t slave_address = 0x48;
+constexpr uint8_t slave_address = 0x77;
+
+// set true on NACK interrupt
+volatile bool got_nack = false;
+bool latch_rx_interrupt = false;
+
+// just to show the order in which the two interrupts happen
+volatile unsigned interrupt_counter = 0;
 
 void blink_code(unsigned code, unsigned bit_len) {
   unsigned min_len = (bit_len < sizeof(code) * 8 ? bit_len : sizeof(code) * 8);
@@ -137,11 +144,12 @@ int main(void)
     UCB0I2CIE |= UCNACKIE;
     //UCB0I2CIE |= 0b1000;
 
-    blink_code(0b10101100, 8);
-
     unsigned count_cycle{0};
     while (1) {
-        __delay_cycles(500'000);  // just a reasonable delay
+        interrupt_counter = 0;
+        //__delay_cycles(500'000);  // just a reasonable delay
+
+    //blink_code(0b1100, 4);
 
         //_BIS_SR(LPM0_bits + GIE); // Enter LPM0 w/ interrupt
         // does it really enter LPM3 with ADC10 core running?
@@ -153,7 +161,29 @@ int main(void)
         // and the transmitter mode
         UCB0CTL1 |= UCTR | UCTXSTT;
 
+        //if (count_cycle == 1 && (IFG2 & UCB0TXIFG) > 0)
+        if (count_cycle == 1)
+        while (1) {
+          //blink_code(0b0, 1);
+
+          // status is all clear here
+          //blink_code(UCB0STAT, 4);
+
+          // there is no reset
+          if (UCB0CTL1 & UCSWRST > 0) blink_code(0b0, 1);
+          // everything is still set
+          else if ((UCB0I2CSA & 0x7f) != slave_address) blink_code(0b0, 1);
+          else blink_code(0b1, 1);
+        }
+
     __bis_SR_register(CPUOFF + GIE);        // Enter LPM0 w/ interrupts
+
+    // with the good address, it never comes out from the sleep here
+    // although, I do see how the address byte is sent the second time
+    // -- is that because I currently do not load the TX buffer?
+        if (count_cycle == 1) while (1) {
+          blink_code(0b0, 1);
+        }
 
   // do we ever get out from the sleep?
   // looks like no?
@@ -169,7 +199,10 @@ int main(void)
         //// the blog post just "waits for the start condition to be sent"
         //// it must mean that the address byte is included in the start condition
         ///* Wait for the start condition to be sent and ready to transmit interrupt */
-        //while ((UCB0CTL1 & UCTXSTT) && ((IFG2 & UCB0TXIFG) == 0));
+        // the NACK interrupt must be handled before it passes this wait
+        while ((UCB0CTL1 & UCTXSTT) && ((IFG2 & UCB0TXIFG) == 0)) {
+          blink_sos();
+        }
 
         //// maybe let's write a byte?
         //UCB0TXBUF = 0x10;
@@ -179,6 +212,7 @@ int main(void)
         //// stop condition
         //UCB0CTL1 |= UCTXSTP;     // Generate I2C stop condition
 
+    /*
     while (1) blink_code(0b1, 1);
 
         // check ACK/NACK
@@ -190,6 +224,7 @@ int main(void)
       blink_code(0b1, 1);
       // it seems there is always at least one of these
     }
+    */
 
         //device::Port1::p_out::write(
         //    ((got_nack || got_ifg) ? (1 << board::LED_RED) : 0x0)
@@ -199,25 +234,102 @@ int main(void)
         //    (count_cycle & 0x1 == 0x1 ? (1 << board::LED_RED) : 0x0)
         //);
 
+        // the ISRs have set the got_nack correctly:
         if (got_nack) {
-          blink_code(0b10011, 5);
+          blink_code(0b10, 2);
         }
 
         else {
-          blink_code(0b11011, 5);
+          blink_code(0b001, 3);
+
+          // test that the RX interrupt never fires in the ACK case:
+          if (latch_rx_interrupt) {
+            while (1) blink_code(0b0, 1);
+          }
+        }
+
+        // check and clear the interrupt counter:
+        // ACK case, 1 interrupt: only TX (buf ready) and no RX interrupts
+        // NACK case, 4 interrutps: TX (buf ready), RX (NACK)
+        if (!(interrupt_counter == 1 || interrupt_counter == 2)) {
+          while (1) {
+            blink_sos();
+            blink_code(0b001, 3);
+          }
         }
 
         count_cycle++;
     }
 }
 
-bool first_tx_interrupt = true;
-
 // the receive interrupt vector handles the change flags, such as NACK
 #pragma vector = USCIAB0RX_VECTOR
 __interrupt void USCIAB0RX_ISR(void)
 {
+  // it seems that when it is the ACK case, the RX interrupt never fires
+  // let's latch and test it:
+  latch_rx_interrupt = true;
 
+  // the NACK interrupt (enabled by the NACKIE in the setup)
+  // triggers the RX ISR
+  // let's confirm that it is indeed the second interrupt
+  // after the TX buf ready:
+
+  // at this NACK, the flags change like this:
+  bool nack_flag_is_on = (UCB0STAT & UCNACKIFG) > 0;
+  bool start_condition_is_cleared = (UCB0CTL1 & UCTXSTT) == 0;
+  bool tx_buf_ready = (IFG2 & UCB0TXIFG) > 0;
+  bool nack_full_condition = start_condition_is_cleared && nack_flag_is_on && !tx_buf_ready;
+
+  if (interrupt_counter == 0) {
+    // this never happens - the first interrupt is TX buf ready
+    while (1) blink_code(0b0, 1);
+  }
+
+  if (interrupt_counter == 1)
+  {
+    // the NACK interrupt when the address is wrong
+    if (!nack_full_condition) while (1) blink_code(0b1, 1);
+    //if (!(start_condition_is_cleared && !nack_full_condition)) while (1) blink_code(0b0, 1);
+
+    // just to confirm that the stop condition is cleared here:
+    bool stop_condition_cleared = (UCB0CTL1 & UCTXSTP) == 0;
+    if (!stop_condition_cleared) while (1) blink_code(0b1, 1);
+    // the TX ISR requests the stop condition and exits
+    // the MSP430 goes to process the RX ISR for the NACK interrupt
+    // and the USCI B has already done the stop condition
+    // so, it is already cleared, but I am not sure whether this is reliable
+    // could the MSP430 clock be much faster than the I2C SCL,
+    // so that the RX ISR is processed before the stop condition is done?
+
+    got_nack = true;
+    // clear the flag or this ISR will rerun non-stop
+    // after the interrupt 3 (i.e. interrupt 4, 5, etc will be NACK interrutps):
+    UCB0STAT &= ~UCNACKIFG;
+  }
+
+  else
+  {
+    while (1) {
+      blink_code(0b01, 2);
+      blink_sos();
+    }
+  }
+
+  // finally:
+  interrupt_counter++;
+  // let's also clear the flag
+  IFG2 &= ~UCB0RXIFG;
+
+  // not sure why it is needed to exit with CPUOFF
+  // I thought the TX ISR already got the MSP430 out from LPM
+  // but, it hangs without this
+  __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
+
+  // and, in principle, no need to do anything
+  // the TX ISR has requested the stop condition and exited the LPM0
+
+  /*
   if (!first_tx_interrupt)
   {
     bool start_condition_is_cleared = (UCB0CTL1 & UCTXSTT) == 0;
@@ -248,6 +360,7 @@ __interrupt void USCIAB0RX_ISR(void)
   else {
     while (1) blink_code(0b111, 3);
   }
+  */
 
 }
 
@@ -264,6 +377,36 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
 #error Compiler not supported!
 #endif
 {
+  // the TX ISR is triggered by the TX buffer ready interrupt
+  // after the Start Condition is out
+  // i.e. it is the first interrupt in the transaction
+  // let's confirm it:
+  if (interrupt_counter > 0) {
+    while(1) blink_code(0b1, 1);
+  }
+  interrupt_counter++;
+
+  // the Start Condition includes the address byte
+  // so, the only thing left to do here is to end the transaction
+  // with the stop condition:
+
+  // it did not get NACK yet
+  got_nack = false;
+
+  // apparently, if I do not write to the buffer on ACK, it will hang?
+  // on the next iteration of the main loop, after the Start Condition
+  // MSP430 won't get an interrupt into this ISR and will remain in the LPM
+  // maybe there is a way to reset it with the UCSWRST
+  UCB0TXBUF = 0xD0; // the ID register address in BMP280
+  // no, this does not help
+
+  UCB0CTL1 |= UCTXSTP;  // I2C stop condition
+  IFG2 &= ~UCB0TXIFG;   // Clear USCI_B0 TX int flag
+
+  // and exit LPM0
+  __bic_SR_register_on_exit(CPUOFF);
+
+  /*
   // blink to show that it handles the first interrupt
   // the scope triggers at the interrupt - before this blinking pattern
   //blink_code(0b011010, 6);
@@ -329,6 +472,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
   //
   // if I add that loop on the STT - the following starts working for the wrong address
   // does the order of reading registers matter?
+  */
 
   /*
   bool start_condition_is_cleared = (UCB0CTL1 & UCTXSTT) == 0;
@@ -361,6 +505,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
   //}
   */
 
+  /*
   if (!first_tx_interrupt)
   {
     bool start_condition_is_cleared = (UCB0CTL1 & UCTXSTT) == 0;
@@ -458,6 +603,7 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
 
     __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
   }
+*/
 }
 
 
