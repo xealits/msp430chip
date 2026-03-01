@@ -141,8 +141,10 @@ int main(void)
     IE2 |= UCB0TXIE;
 
     // enable the NACK interrupt
-    UCB0I2CIE |= UCNACKIE;
+    //UCB0I2CIE |= UCNACKIE;
     //UCB0I2CIE |= 0b1000;
+
+    blink_code(0b1100, 4);
 
     unsigned count_cycle{0};
     while (1) {
@@ -155,35 +157,66 @@ int main(void)
         // does it really enter LPM3 with ADC10 core running?
         //_BIS_SR(LPM3_bits + GIE);
 
+        //if (count_cycle == 1 && (IFG2 & UCB0TXIFG) > 0)
+        //if (count_cycle == 1)
+        ////while (1)
+        //{
+        //  //blink_code(0b0, 1);
+
+        //  // status is all clear here
+        //  //blink_code(UCB0STAT, 4);
+
+        //  // there is no reset
+        //  if (UCB0CTL1 & UCSWRST > 0) blink_code(0b0, 1);
+        //  // everything is still set
+        //  else if ((UCB0I2CSA & 0x7f) != slave_address) blink_code(0b0, 1);
+        //  // the interrupt is still set
+        //  else if ((IE2 & UCB0TXIE) == 0) blink_code(0b0, 1);
+        //  else blink_code(0b1, 1);
+        //}
+
+    //// let's try to re-emnable the TX interrupt
+    //IE2 &= ~UCB0TXIE;
+    //IE2 |= UCB0TXIE;
+    //// no, it still hangs
+
+    //// let's try SW reset:
+    //UCB0CTL1 |= UCSWRST;   // Enable SW reset
+    //// it resets everything -- the clock and data lines are down
+    //UCB0CTL1 &= ~UCSWRST;  // Clear SW reset, resume operation
+
+  //      // let's redo the full config:
+  //P1SEL |= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
+  //P1SEL2|= BIT6 + BIT7;                     // Assign I2C pins to USCI_B0
+  //UCB0CTL1 |= UCSWRST;                      // Enable SW reset
+  //UCB0CTL0 = UCMST + UCMODE_3 + UCSYNC;     // I2C Master, synchronous mode
+  //UCB0CTL1 = UCSSEL_2 + UCSWRST;            // Use SMCLK, keep SW reset
+  //UCB0BR0 = 12;                             // fSCL = SMCLK/12 = ~100kHz
+  //UCB0BR1 = 0;
+  //UCB0I2CSA = slave_address;                // Slave Address is 048h
+  //UCB0CTL1 &= ~UCSWRST;                     // Clear SW reset, resume operation
+  //  // enable TX interrupt
+  //  IE2 |= UCB0TXIE;
+  //  // enable the NACK interrupt
+  //  UCB0I2CIE |= UCNACKIE;
+  //  //UCB0I2CIE |= 0b1000;
+
+  //  // it still hangs!!!
+
         // start condition
         //UCB0CTL1 |= UCTXSTT;     // I2C start condition
         /* Send the start condition */
         // and the transmitter mode
         UCB0CTL1 |= UCTR | UCTXSTT;
 
-        //if (count_cycle == 1 && (IFG2 & UCB0TXIFG) > 0)
-        if (count_cycle == 1)
-        while (1) {
-          //blink_code(0b0, 1);
-
-          // status is all clear here
-          //blink_code(UCB0STAT, 4);
-
-          // there is no reset
-          if (UCB0CTL1 & UCSWRST > 0) blink_code(0b0, 1);
-          // everything is still set
-          else if ((UCB0I2CSA & 0x7f) != slave_address) blink_code(0b0, 1);
-          else blink_code(0b1, 1);
-        }
-
     __bis_SR_register(CPUOFF + GIE);        // Enter LPM0 w/ interrupts
 
     // with the good address, it never comes out from the sleep here
     // although, I do see how the address byte is sent the second time
     // -- is that because I currently do not load the TX buffer?
-        if (count_cycle == 1) while (1) {
-          blink_code(0b0, 1);
-        }
+        //if (count_cycle == 1) while (1) {
+        //  blink_code(0b0, 1);
+        //}
 
   // do we ever get out from the sleep?
   // looks like no?
@@ -381,10 +414,15 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
   // after the Start Condition is out
   // i.e. it is the first interrupt in the transaction
   // let's confirm it:
-  if (interrupt_counter > 0) {
+  //if (interrupt_counter == 1) while (1) {
+  //  blink_code(0b001, 3);
+  //  // yeah, on ACK, TX gets triggered the second time
+  //}
+
+  if (interrupt_counter > 1)
+  {
     while(1) blink_code(0b1, 1);
   }
-  interrupt_counter++;
 
   // the Start Condition includes the address byte
   // so, the only thing left to do here is to end the transaction
@@ -393,18 +431,50 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
   // it did not get NACK yet
   got_nack = false;
 
-  // apparently, if I do not write to the buffer on ACK, it will hang?
-  // on the next iteration of the main loop, after the Start Condition
-  // MSP430 won't get an interrupt into this ISR and will remain in the LPM
-  // maybe there is a way to reset it with the UCSWRST
-  UCB0TXBUF = 0xD0; // the ID register address in BMP280
-  // no, this does not help
+  if (interrupt_counter == 0) {
+    //// apparently, if I do not write to the buffer on ACK, it will hang?
+    //// on the next iteration of the main loop, after the Start Condition
+    //// MSP430 won't get an interrupt into this ISR and will remain in the LPM
+    //// maybe there is a way to reset it with the UCSWRST
+    UCB0TXBUF = 0xD0; // the ID register address in BMP280
+    //// no, this does not help
+    /// and I do not see the data! no control byte!!
 
-  UCB0CTL1 |= UCTXSTP;  // I2C stop condition
-  IFG2 &= ~UCB0TXIFG;   // Clear USCI_B0 TX int flag
+    // with this line, I got the control byte - and no extra ring on the ACK bit
+    //while(1) blink_code(0b1, 1);
+    // when I reset, only the clock goes up.......
+  }
 
-  // and exit LPM0
-  __bic_SR_register_on_exit(CPUOFF);
+  else {
+    // it never gets here and both data and clock are on the ground
+    UCB0CTL1 |= UCTXSTP;  // I2C stop condition
+    IFG2 &= ~UCB0TXIFG;   // Clear USCI_B0 TX int flag
+
+    // and exit LPM0
+    __bic_SR_register_on_exit(CPUOFF);
+
+    // test if we get here
+    //while(1) blink_code(0b01, 2);
+    // yep, now it gets gere
+  }
+
+    //UCB0CTL1 |= UCTXSTP;  // I2C stop condition
+    //IFG2 &= ~UCB0TXIFG;   // Clear USCI_B0 TX int flag
+
+    //// and exit LPM0
+    //__bic_SR_register_on_exit(CPUOFF);
+    // OK, this stop condition must not be done together with the data buffer!
+    // and the extra ring on ACK happens on the stop condition
+
+
+  //if (interrupt_counter == 0) {
+  //  if ((IFG2 & UCB0TXIFG) > 0)
+  //    while(1) blink_code(0b01, 2);
+  //}
+
+  //  while(1) blink_code(0b0, 1);
+
+  interrupt_counter++;
 
   /*
   // blink to show that it handles the first interrupt
