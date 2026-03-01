@@ -11,7 +11,7 @@ namespace board = launchpad_boards::MSP_EXP430G2;
 namespace device = board::controller;
 
 // 0x77 default address of Grove BMP280
-// 0x48 some sensor from Ti example
+// 0x48 some sensor from the Ti example
 constexpr uint8_t slave_address = 0x77;
 
 // set true on NACK interrupt
@@ -52,6 +52,7 @@ int main(void)
   BCSCTL1 = CALBC1_1MHZ;  // Set range   DCOCTL = CALDCO_1MHZ;
   BCSCTL2 &= ~(DIVS_3);   // SMCLK = DCO = 1MHz
 
+  /*
   // blink red led on Launchpad
   P1OUT &= ~BIT0;                           // P1.0 = 0
   P1DIR |= BIT0;                            // P1.0 output
@@ -73,76 +74,82 @@ int main(void)
 
   // enable the NACK interrupt
   UCB0I2CIE |= UCNACKIE;
+  */
 
-    /*
-    // initialize all ports to IO output - unused too
-    // pins 6 and 7 are set to USCI_B
-    // the rest are I/O with direction output
-    device::Port1::p_sel::write<(1 << 6) | (1 << 7)>();
-    device::Port1::p_sel2::write<(1 << 6) | (1 << 7)>();
-    device::Port1::p_dir::write<0xFF>(); // all output
+  // initialize all ports to IO output - unused too
+  // pins 6 and 7 are set to USCI_B
+  // the rest are I/O with direction output
+  device::Port1::p_sel::write<(1 << 6) | (1 << 7)>();
+  device::Port1::p_sel2::write<(1 << 6) | (1 << 7)>();
+  device::Port1::p_dir::write<0xFF>(); // all output
 
-    //// I2C peripheral function
-    //P1SEL |= BIT6 + BIT7;       // Assign I2C pins to USCI_B
-    //P1SEL2|= BIT6 + BIT7;       // Assign I2C pins to USCI_B
+  { // unused ports
+    // the configuration of anused ports adds some 16B to the size of the binary
+    // wrt the Ti config above
+    // set not connected pins to primary peripheral mode
+    // (a way this works, setting them to I/O hangs the chip)
+    device::Port2::p_sel::write<0xF0 - 0x30>(); // 6 pins 0-5 are on the package
+    device::Port2::p_sel2::write<0x00>();
+    device::Port2::p_dir::write<0x3F>();
 
-    { // unused ports
-        // set not connected pins to primary peripheral mode
-        // (a way this works, setting them to I/O hangs the chip)
-        device::Port2::p_sel::write<0xF0 - 0x30>(); // 6 pins 0-5 are on the package
-        device::Port2::p_sel2::write<0x00>();
-        device::Port2::p_dir::write<0x3F>();
+    device::Port3::p_sel::write<0xFF>();
+    device::Port3::p_sel2::write<0x00>();
+  }
 
-        device::Port3::p_sel::write<0xFF>();
-        device::Port3::p_sel2::write<0x00>();
+  { // configure USCI B for I2C
+      
+    {
+      using ctr1 = device::USCI_B::Control1;
+      ctr1::write<
+        ctr1::SoftwareReset::set(1) // put in reset to configure
+      >();
     }
 
-    { // configure USCI B for I2C
-        
-      {
-        using ctr1 = device::USCI_B::Control1;
-        ctr1::write<
-          ctr1::SoftwareReset::set(1) // put in reset to configure
-        >();
-      }
-
-      {
-        using ctr0 = device::USCI_B::Control0;
-        ctr0::write<
-          ctr0::USCIMode::set(ctr0::USCIMode::I2C)
-          | ctr0::SyncMode::set(ctr0::SyncMode::SYNCHRONOUS)
-          | ctr0::MasterMode::set(ctr0::MasterMode::MASTER)
-        >();
-      }
-
-      //
-      //Configure the baud rate registers for 100kHz when sourcing from SMCLK
-      //where SMCLK = 1MHz
-      //
-      //UCB0BR0 = 10; 
-      //UCB0BR1 = 0;
-      {
-        device::USCI_B::BaudRate0::write(10);
-        device::USCI_B::BaudRate1::write(0);
-      }
-
-      {
-        // configure slave address
-        device::USCI_B::I2CSlaveAddress::write(slave_address);
-      }
-
-      {
-        // set the clock source to SMCLK, which is 1MHz, and take it out from reset
-        using ctr1 = device::USCI_B::Control1;
-        ctr1::write<
-          ctr1::ClockSource::set(ctr1::ClockSource::SMCLK)
-          // keep SW reset - nope
-          // let's follow the blog post here
-          | ctr1::SoftwareReset::set(0)
-        >();
-      }
+    {
+      using ctr0 = device::USCI_B::Control0;
+      ctr0::write<
+        ctr0::USCIMode::set(ctr0::USCIMode::I2C)
+        | ctr0::SyncMode::set(ctr0::SyncMode::SYNCHRONOUS)
+        | ctr0::MasterMode::set(ctr0::MasterMode::MASTER)
+      >();
     }
-    */
+
+    //
+    //Configure the baud rate registers for 100kHz when sourcing from SMCLK
+    //where SMCLK = 1MHz
+    {
+      device::USCI_B::BaudRate0::write(12);
+      device::USCI_B::BaudRate1::write(0);
+    }
+
+    {
+      // configure slave address
+      device::USCI_B::I2CSlaveAddress::write(slave_address);
+    }
+
+    {
+      // set the clock source to SMCLK, which is 1MHz, and take it out from reset
+      using ctr1 = device::USCI_B::Control1;
+      ctr1::write<
+        ctr1::ClockSource::set(ctr1::ClockSource::SMCLK)
+        // keep SW reset - nope
+        // let's follow the blog post here
+        | ctr1::SoftwareReset::set(0)
+      >();
+    }
+
+    // enable the NACK interrupt
+    //UCB0I2CIE |= UCNACKIE;
+    {
+      using ie = device::USCI_B::I2CInterruptEnable;
+      ie::write<
+        ie::NotAcknowledgeIE::set(1)
+        >();
+    }
+  }
+
+  // enable TX interrupt
+  IE2 |= UCB0TXIE;
 
   while (1) {
     interrupt_counter = 0;

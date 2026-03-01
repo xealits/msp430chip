@@ -1091,20 +1091,15 @@ struct USCI_B {
 
   /// UCBxIE or UCBxI2CIE in the msp430g2552.h header.
   struct I2CInterruptEnable : public Register<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t> {
-    /// UCRXIE
-    struct ReceiveIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 0, 1> {};
-    /// UCTXIE
-    struct TransmitIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 1, 1> {};
-    /// UCSTTIE
-    struct StartConditionIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 2, 1> {};
-    /// UCSTPIE
-    struct StopConditionIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 3, 1> {};
     /// UCALIE
-    struct ArbitrationLostIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 4, 1> {};
+    struct ArbitrationLost : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 0, 1> {};
+    /// UCSTTIE
+    struct StartConditionIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 1, 1> {};
+    /// UCSTPIE
+    struct StopConditionIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 2, 1> {};
     /// UCNACKIE
-    struct NotAcknowledgeIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 5, 1> {};
-    /// UCNACKIE
-    struct Reserved : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 6, 2> {};
+    struct NotAcknowledgeIE : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 3, 1> {};
+    struct Reserved : public BitField<decltype(I2CInterruptEnable_t), I2CInterruptEnable_t, 4, 4> {};
   };
 
   /// TODO: this one seems wrongly implemented - does not match User Guide.

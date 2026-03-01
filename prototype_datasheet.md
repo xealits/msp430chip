@@ -2010,6 +2010,8 @@ Name: <dfn>I2CInterruptEnable</dfn>. Width: <span class="width">8</span>.
   <summary>Bit fields in I2C mode.</summary>
 
 <ul>
+<!-- Check these, they do not correspond to the User Guide.
+Did I somehow wrongly got them from the header?
 <li class="field"> <dfn>ReceiveIE</dfn> <span class="width">1</span>'@<span class="offset">0</span> <span class="comment"> <code>UCRXIE</code> </span> </li>
 <li class="field"> <dfn>TransmitIE</dfn> <span class="width">1</span>'@<span class="offset">1</span> <span class="comment"> <code>UCTXIE</code> </span> </li>
 <li class="field"> <dfn>StartConditionIE</dfn> <span class="width">1</span>'@<span class="offset">2</span> <span class="comment"> <code>UCSTTIE</code> </span> </li>
@@ -2017,6 +2019,14 @@ Name: <dfn>I2CInterruptEnable</dfn>. Width: <span class="width">8</span>.
 <li class="field"> <dfn>ArbitrationLostIE</dfn> <span class="width">1</span>'@<span class="offset">4</span> <span class="comment"> <code>UCALIE</code> </span> </li>
 <li class="field"> <dfn>NotAcknowledgeIE</dfn> <span class="width">1</span>'@<span class="offset">5</span> <span class="comment"> <code>UCNACKIE</code> </span> </li>
 <li class="field"> <dfn>Reserved</dfn> <span class="width">2</span>'@<span class="offset">6</span> <span class="comment"> <code>UCNACKIE</code> </span> </li>
+-->
+
+<li class="field"> <dfn>ArbitrationLost</dfn> <span class="width">1</span>'@<span class="offset">0</span> <span class="comment"> <code>UCALIE</code> </span> </li>
+<li class="field"> <dfn>StartConditionIE</dfn> <span class="width">1</span>'@<span class="offset">1</span> <span class="comment"> <code>UCSTTIE</code> </span> </li>
+<li class="field"> <dfn>StopConditionIE</dfn> <span class="width">1</span>'@<span class="offset">2</span> <span class="comment"> <code>UCSTPIE</code> </span> </li>
+<li class="field"> <dfn>NotAcknowledgeIE</dfn> <span class="width">1</span>'@<span class="offset">3</span> <span class="comment"> <code>UCNACKIE</code> </span> </li>
+<li class="field"> <dfn>Reserved</dfn> <span class="width">4</span>'@<span class="offset">4</span> </li>
+
 </ul>
 </details>
 </li>
