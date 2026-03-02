@@ -39,7 +39,7 @@ unsigned char TXByteCtr;
 
 // 0x48 - Ti example
 // 0x77 - my Grive BMP280 board
-constexpr unsigned slave_address = 0x77;
+constexpr unsigned slave_address = 0x48;
 
 volatile bool got_nack = false;
 volatile bool got_error = false;
@@ -175,7 +175,7 @@ __interrupt void USCIAB0RX_ISR(void)
     got_error = true;
   }
 
-    while (1) blink_sos();
+  //while (1) blink_sos();
 
   // clear the flag
   UCB0STAT &= ~UCNACKIFG;
@@ -230,28 +230,28 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
     __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
   }
 
-  // here, if everything is OK, the SCL must be low
-  // - somehow, no, it is not SCL low even when things work
-  //if ((UCB0STAT & UCSCLLOW) == 0) {
-  //  got_error = true;
+  //// here, if everything is OK, the SCL must be low
+  //// - somehow, no, it is not SCL low even when things work
+  ////if ((UCB0STAT & UCSCLLOW) == 0) {
+  ////  got_error = true;
+  ////}
+  //// bus busy? - yeah, this one seems to work in the good case
+  //// but it does not catch the bad case
+  //while (1) {
+  //  blink_code(0b10, 2);
+
+  //  // yeah, the error case never hits it
+  //  // so USCI did release the bus, but its status register does not show it
+  //  if ((UCB0STAT & UCBBUSY) == 0) {
+  //    got_error = true;
+
+  //    while (1) blink_sos();
+
+  //    // and it needs to exit
+  //    //UCB0CTL1 &= ~UCTXSTP; // clear stop condition?
+  //    IFG2 &= ~UCB0TXIFG;                     // Clear USCI_B0 TX int flag
+  //    __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
+  //  }
   //}
-  // bus busy? - yeah, this one seems to work in the good case
-  // but it does not catch the bad case
-  while (1) {
-    blink_code(0b10, 2);
-
-    // yeah, the error case never hits it
-    // so USCI did release the bus, but its status register does not show it
-    if ((UCB0STAT & UCBBUSY) == 0) {
-      got_error = true;
-
-      while (1) blink_sos();
-
-      // and it needs to exit
-      //UCB0CTL1 &= ~UCTXSTP; // clear stop condition?
-      IFG2 &= ~UCB0TXIFG;                     // Clear USCI_B0 TX int flag
-      __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
-    }
-  }
 }
 
