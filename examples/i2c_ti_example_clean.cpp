@@ -41,6 +41,9 @@ unsigned char TXByteCtr;
 // 0x77 - my Grive BMP280 board
 constexpr unsigned slave_address = 0x77;
 
+volatile bool got_nack = false;
+volatile bool got_error = false;
+
 void blink_code(unsigned code, unsigned bit_len) {
   unsigned min_len = (bit_len < sizeof(code) * 8 ? bit_len : sizeof(code) * 8);
 
@@ -56,6 +59,11 @@ void blink_code(unsigned code, unsigned bit_len) {
       __delay_cycles(100'000);
     }
   }
+}
+
+void blink_sos(void) {
+  blink_code(0b000, 3);
+  blink_code(0b111, 3);
 }
 
 int main(void)
@@ -77,6 +85,12 @@ int main(void)
   UCB0CTL1 &= ~UCSWRST;                     // Clear SW reset, resume operation
 
   IE2 |= UCB0TXIE;                          // Enable TX interrupt
+  UCB0I2CIE |= UCNACKIE;
+
+  // somehow, it works without enabling the RX interrupt
+  if ((IE2 & UCB0RXIE) > 0) while (1) {
+    blink_sos();
+  }
 
   TXData = 0x00;                            // Holds TX data
 
@@ -84,16 +98,11 @@ int main(void)
 
   while (1)
   {
+    got_nack = false;
+    got_error = false;
     TXByteCtr = 1;                          // Load TX byte counter
-    while (UCB0CTL1 & UCTXSTP)              // Ensure stop condition got sent
-    {
-      // this loop is never entered
-      // the stop condition was never set
-      // because there was never a second interrupt to set it
-      while (1) blink_code(0x1, 2);
-    }
 
-    blink_code(0b100001111, 8);
+    //blink_code(0b100001111, 8);
 
     UCB0CTL1 |= UCTR + UCTXSTT;             // I2C TX, start condition
     __bis_SR_register(CPUOFF + GIE);        // Enter LPM0 w/ interrupts
@@ -101,12 +110,84 @@ int main(void)
                                             // is TX'd
     TXData++;                               // Increment data byte
 
-    // it never wakes up from the sleep on the second loop iteration
+    // if got error - clear the STOP request yourself
+    if (got_error) {
+      UCB0CTL1 &= ~UCTXSTP;
+    }
 
-    blink_code(0b1100, 4);
-    blink_code(0b1100, 4);
+    while (UCB0CTL1 & UCTXSTP)              // Ensure stop condition got sent
+    {
+      // it enters and blinks here once
+      //blink_code(0b11, 2);
+      blink_sos();
+    }
+
+    if (got_nack) {
+      blink_code(0b1100, 4);
+    }
+
+    else {
+      blink_code(0b00, 2);
+    }
+
+    if (got_error) {
+      blink_code(0b1010, 4);
+    }
   }
 }
+
+// the receive interrupt vector handles the change flags, such as NACK
+#pragma vector = USCIAB0RX_VECTOR
+__interrupt void USCIAB0RX_ISR(void)
+{
+
+  // the NACK interrupt (enabled by the NACKIE in the setup)
+  // triggers the RX ISR
+
+  // on NACK, the flags change like this:
+  bool nack_flag_is_on = (UCB0STAT & UCNACKIFG) > 0;
+  bool start_condition_is_cleared = (UCB0CTL1 & UCTXSTT) == 0;
+  bool tx_buf_ready = (IFG2 & UCB0TXIFG) > 0;
+  bool nack_full_condition = start_condition_is_cleared && nack_flag_is_on && !tx_buf_ready;
+
+  // the NACK interrupt when the address is wrong
+  if (!nack_full_condition) while (1) blink_code(0b1, 1);
+
+  // just to confirm that the stop condition is cleared here:
+  bool stop_condition_cleared = (UCB0CTL1 & UCTXSTP) == 0;
+  if (!stop_condition_cleared) while (1) blink_code(0b1, 1);
+  // the TX ISR requests the stop condition and exits
+  // the MSP430 goes to process the RX ISR for the NACK interrupt
+  // and the USCI B has already done the stop condition
+  // so, it is already cleared, but I am not sure whether this is reliable
+  // could the MSP430 clock be much faster than the I2C SCL,
+  // so that the RX ISR is processed before the stop condition is done?
+
+  got_nack = true;
+  // if nothing is wrong on the bus,
+  // the SCL must be held down until STP condition is requested
+  //if (!(UCB0STAT & UCSCLLOW > 0)) {
+  //  got_error = true;
+  //}
+  // nope, that one does not work
+  // Bus Busy does seem to be set
+  if ((UCB0STAT & UCBBUSY) == 0) {
+    got_error = true;
+  }
+
+    while (1) blink_sos();
+
+  // clear the flag
+  UCB0STAT &= ~UCNACKIFG;
+
+  UCB0CTL1 |= UCTXSTP;  // I2C stop condition
+
+  // let's also clear the flag
+  IFG2 &= ~UCB0RXIFG;
+
+  __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
+}
+
 
 //------------------------------------------------------------------------------
 // The USCIAB0TX_ISR is structured such that it can be used to transmit any
@@ -121,15 +202,6 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
 #error Compiler not supported!
 #endif
 {
-  // blink to show that it handles the first interrupt
-  // the scope triggers at the interrupt - before this blinking pattern
-  //blink_code(0b011010, 6);
-
-  // clear the LED pin
-  // in case it does not wake up from the sleep,
-  // it is the only place where LED is cleared
-  P1OUT &= ~BIT0; // P1.0 = 0
-
   if (TXByteCtr)                            // Check TX byte counter
   {
     UCB0TXBUF = TXData;                     // Load TX buffer
@@ -151,10 +223,35 @@ void __attribute__ ((interrupt(USCIAB0TX_VECTOR))) USCIAB0TX_ISR (void)
   else
   {
     //while (1) blink_code(0x01, 2);
+    got_nack = false;
 
     UCB0CTL1 |= UCTXSTP;                    // I2C stop condition
     IFG2 &= ~UCB0TXIFG;                     // Clear USCI_B0 TX int flag
     __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
+  }
+
+  // here, if everything is OK, the SCL must be low
+  // - somehow, no, it is not SCL low even when things work
+  //if ((UCB0STAT & UCSCLLOW) == 0) {
+  //  got_error = true;
+  //}
+  // bus busy? - yeah, this one seems to work in the good case
+  // but it does not catch the bad case
+  while (1) {
+    blink_code(0b10, 2);
+
+    // yeah, the error case never hits it
+    // so USCI did release the bus, but its status register does not show it
+    if ((UCB0STAT & UCBBUSY) == 0) {
+      got_error = true;
+
+      while (1) blink_sos();
+
+      // and it needs to exit
+      //UCB0CTL1 &= ~UCTXSTP; // clear stop condition?
+      IFG2 &= ~UCB0TXIFG;                     // Clear USCI_B0 TX int flag
+      __bic_SR_register_on_exit(CPUOFF);      // Exit LPM0
+    }
   }
 }
 
