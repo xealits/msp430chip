@@ -12,7 +12,7 @@ namespace device = board::controller;
 
 // 0x77 default address of Grove BMP280
 // 0x48 some sensor from the Ti example
-constexpr uint8_t slave_address = 0x77;
+constexpr uint8_t slave_addresses[] = {0x77, 0x48};
 
 // set true on NACK interrupt
 volatile bool got_nack = false;
@@ -66,7 +66,7 @@ int main(void)
   UCB0CTL1 = UCSSEL_2 + UCSWRST;            // Use SMCLK, keep SW reset
   UCB0BR0 = 12;                             // fSCL = SMCLK/12 = ~100kHz
   UCB0BR1 = 0;
-  UCB0I2CSA = slave_address;                // Slave Address is 048h
+  UCB0I2CSA = slave_addresses[0];                // Slave Address is 048h
   UCB0CTL1 &= ~UCSWRST;                     // Clear SW reset, resume operation
 
   // enable TX interrupt
@@ -124,7 +124,7 @@ int main(void)
 
     {
       // configure slave address
-      device::USCI_B::I2CSlaveAddress::write(slave_address);
+      device::USCI_B::I2CSlaveAddress::write(slave_addresses[0]);
     }
 
     {
@@ -151,9 +151,13 @@ int main(void)
   // enable TX interrupt
   IE2 |= UCB0TXIE;
 
+  unsigned count_iterations = 0;
   while (1) {
     interrupt_counter = 0;
     latch_rx_interrupt = false;
+
+    // it is possible to set the address without going into SW reset
+    device::USCI_B::I2CSlaveAddress::write(slave_addresses[count_iterations & 0x1]);
 
     // Send the start condition and the transmitter mode
     UCB0CTL1 |= UCTR | UCTXSTT;
@@ -176,7 +180,7 @@ int main(void)
 
     // the ISRs have set the got_nack correctly:
     if (got_nack) {
-      blink_code(0b10, 2);
+      blink_code(0b01, 2);
     }
 
     else {
@@ -198,6 +202,7 @@ int main(void)
       }
     }
 
+    count_iterations++;
   }
 }
 
