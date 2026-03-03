@@ -30,3 +30,6 @@ It shortens the time to start the conversion?)
 `comparator_busyloop.cpp` is a basic [example from Ti](https://dev.ti.com/tirex/explore/node?isTheia=false&node=A__AHzWBP8bZ4AHl41.8b1Ouw__msp430ware__IOGqZri__LATEST).
 `comparator_interrupt.cpp` is an example with a `COMPARATORA_VECTOR` interrupt.
 I did not measure yet the current consumption when the comparator and ref voltage are ON but the chip is in a sleep mode.
+
+`i2c*.cpp` examples check whether a given I2C address ACKs a frame.
+`i2c_scan_addresses.cpp` scans the bus and blinks out the addresses that ACK.

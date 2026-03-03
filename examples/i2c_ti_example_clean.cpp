@@ -5,6 +5,8 @@
 // and never exits the LPM0 sleep.
 // If I make it exit the sleep at the end of the first interrupt
 // and add the stop condition, USC B never clears the stop condition flag.
+// It is based on the Ti example of the USCI peripheral:
+// https://dev.ti.com/tirex/explore/node?isTheia=false&node=A__AOXtWQGRbQWMQsrS1Xx.3g__msp430ware__IOGqZri__LATEST
 
 //******************************************************************************
 //  MSP430G2xx3 Demo - USCI_B0 I2C Master TX single bytes to MSP430 Slave
