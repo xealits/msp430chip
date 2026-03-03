@@ -18,7 +18,7 @@ Or just search for PSEL and you will probably find the tables.
 
 * I did not figure out how to run their "Repeat-Sequence-of-Channels" mode
 in the `reading_adc10_MultipleChannelsRepeatedReads.cpp` example.
-* The SLAU144K Guide (section 22.2.6.4 Repeat-Sequence-of-Channels Mode) says
+* The [SLAU144K][slau144k] Guide (section 22.2.6.4 Repeat-Sequence-of-Channels Mode) says
 only "The sequence ends after conversion of channel A0, and the next trigger signal re-starts the sequence."
 So, it must mean that this "trigger signal" can be configured,
 it is not the Sequence Start (ASC10SC) bit?
@@ -33,3 +33,5 @@ I did not measure yet the current consumption when the comparator and ref voltag
 
 `i2c*.cpp` examples check whether a given I2C address ACKs a frame.
 `i2c_scan_addresses.cpp` scans the bus and blinks out the addresses that ACK.
+
+[slau144k]: https://www.ti.com/lit/ug/slau144k/slau144k.pdf "MSP430F2xx, MSP430G2xx Family User’s Guide"
